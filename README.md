@@ -129,4 +129,4 @@ You'll have to wait to try it out to see what the elements are.<br>
 
 Thanks to Zero Plus.
 
-666×X
+seed: 666×X
