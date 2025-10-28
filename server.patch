@@ -1,0 +1,1941 @@
+--- net/minecraft/src/World.java
++++ net/minecraft/src/World.java
+@@ -58,6 +58,12 @@
+ 	int[] lightUpdateBlockList = new int[-Short.MIN_VALUE];
+ 	private List entitiesWithinAABBExcludingEntity = new ArrayList();
+ 	public boolean singleplayerWorld = false;
++	public boolean[] timerS;
++	public int[] timer;
++	public int[] SPos;
++	public EntityPlayerMP SPlayerSP;
++	public EntityPlayerMP SPlayerMP;
++	public boolean[] switcher;
+ 
+ 	public WorldChunkManager getWorldChunkManager() {
+ 		return this.worldProvider.worldChunkMgr;
+@@ -92,6 +98,10 @@
+ 
+ 		this.calculateInitialSkylight();
+ 		this.updateRainAndThunder();
++		this.timerS = new boolean[15];
++		this.timer = new int[15];
++		this.SPos = new int[5];
++		this.switcher = new boolean[15];
+ 	}
+ 
+ 	protected IChunkProvider createChunkProvider() {
+@@ -99,6 +109,15 @@
+ 		return new ChunkProvider(this, var1, this.worldProvider.getChunkProvider());
+ 	}
+ 
++	public int getWorldMaxY(int X, int Z) {
++		for(int y = 128; y >= 0; y--) {
++			if(!this.isAirBlock(X, y, Z)) {
++				return y;
++			}
++		}
++		return 0;
++	}
++
+ 	protected void generateSpawnPoint() {
+ 		if(!this.worldProvider.canRespawnHere()) {
+ 			this.worldInfo.setSpawnPosition(0, this.worldProvider.func_46119_e(), 0);
+@@ -1465,7 +1484,283 @@
+ 		this.spawnPeacefulMobs = var2;
+ 	}
+ 
++
++	public void event0(EntityPlayerMP playerSP) {
++		EntityVillager66 villager66 = new EntityVillager66(this);
++		int XX = (int)playerSP.posX + 32;
++		int ZZ = (int)playerSP.posZ + 32;
++		int YY = this.getWorldMaxY(XX, ZZ) + 3;
++		villager66.setLocationAndAngles(XX, YY, ZZ, 0, 0);
++		this.spawnEntityInWorld(villager66);
++	}
++
++	public void event1(EntityPlayerMP playerSP) {
++		playerSP.playerNetServerHandler.sendPacket(new Packet80Event(21));
++	}
++
++	public void event1_2(EntityPlayerMP playerSP) {
++		this.SPlayerSP = playerSP;
++		this.SPos[0] = (int)this.SPlayerSP.posX;
++		this.SPos[1] = (int)this.SPlayerSP.posY;
++		this.SPos[2] = (int)this.SPlayerSP.posZ;
++		this.SPos[3] = (int)this.SPlayerSP.rotationYaw;
++		this.SPos[4] = (int)this.SPlayerSP.rotationPitch;
++		this.timerS[0] = true;
++	}
++
++	public void event2(EntityPlayerMP playerSP) {
++		new WorldGenTen().generate(this, this.rand, (int)playerSP.posX, (int)playerSP.posY, (int)playerSP.posZ);
++	}
++
++	public void event3(EntityPlayerMP playerSP) {
++		String[] Text = new String[4];
++		Text[0] = "ZeroPlus";
++		Text[1] = "Hello";
++		Text[2] = "666Plus";
++		Text[3] = "Hello666";
++		new WorldGenSign().generate(this, (int)playerSP.posX, (int)playerSP.posY, (int)playerSP.posZ, Text);
++	}
++
++	public void event4(EntityPlayerMP playerSP) {
++		playerSP.playerNetServerHandler.sendPacket(new Packet80Event(22));
++	}
++
++	public void event4_2(EntityPlayerMP playerSP) {
++		this.SPlayerMP = playerSP;
++		this.SPos[0] = (int)this.SPlayerMP.posX;
++		this.SPos[1] = (int)this.SPlayerMP.posY;
++		this.SPos[2] = (int)this.SPlayerMP.posZ;
++		this.SPos[3] = (int)this.SPlayerMP.rotationYaw;
++		this.SPos[4] = (int)this.SPlayerMP.rotationPitch;
++		for(int i = -4; i < 4; i++) {
++			this.getChunkProvider().loadChunk(-this.getSpawnPoint().posX + 0 >> 4, -this.getSpawnPoint().posZ + i >> 4);
++			this.getChunkProvider().loadChunk(-this.getSpawnPoint().posX + 8 >> 4, -this.getSpawnPoint().posZ + i >> 4);
++			this.getChunkProvider().loadChunk(-this.getSpawnPoint().posX + 16 >> 4, -this.getSpawnPoint().posZ + i >> 4);
++			this.getChunkProvider().loadChunk(-this.getSpawnPoint().posX + 24 >> 4, -this.getSpawnPoint().posZ + i >> 4);
++			this.getChunkProvider().loadChunk(-this.getSpawnPoint().posX + 32 >> 4, -this.getSpawnPoint().posZ + i >> 4);
++			this.getChunkProvider().loadChunk(-this.getSpawnPoint().posX + 40 >> 4, -this.getSpawnPoint().posZ + i >> 4);
++			this.getChunkProvider().loadChunk(-this.getSpawnPoint().posX + 48 >> 4, -this.getSpawnPoint().posZ + i >> 4);
++		}
++		new WorldGenZeroPlus().generate(this);
++		this.SPlayerMP.playerNetServerHandler.teleportTo(-this.getSpawnPoint().posX + 3, 100 + 4, -this.getSpawnPoint().posZ, -90, 0);
++		SPlayerMP.setZeroPlusEvent(true);
++		EntityAboutBlank aboutBlank = new EntityAboutBlank(this, "http://s3.amazonaws.com/MinecraftSkins/" + this.SPlayerMP.username + ".png", this.SPlayerMP.username);
++		aboutBlank.setLocationAndAngles2(this.SPos[0], this.SPos[1], this.SPos[2], this.SPos[3], this.SPos[4]);
++		this.spawnEntityInWorld(aboutBlank);
++		this.worldInfo.setSPlayerMP(this.SPlayerMP.username);
++	}
++
++	public void event5(EntityPlayerMP playerSP) {
++		this.SPlayerSP = playerSP;
++		this.timerS[1] = true;
++	}
++
++	public void event6(EntityPlayerMP playerSP) {
++		playerSP.inventory.armorInventory[new Random().nextInt(4)] = new ItemStack(Item.cookie);
++	}
++
++	public void event7(EntityPlayerMP playerSP) {
++		this.playSoundAtEntity(playerSP, "random.bow", 0.5F, 0.4F / (new Random().nextFloat() * 0.4F + 0.8F));
++		this.spawnEntityInWorld(new EntitySnowball(this, playerSP));
++	}
++
++	public void event8(EntityPlayerMP playerSP) {
++		playerSP.playerNetServerHandler.sendPacket(new Packet80Event(23));
++	}
++
++	public void event9(EntityPlayerMP playerSP) {
++		playerSP.playerNetServerHandler.sendPacket(new Packet81Sound("/sounds/blanker.wav"));
++		playerSP.addChatMessage("about:blank Assistant instance.");
++	}
++
++	public void event10(EntityPlayerMP playerSP) {
++		playerSP.inventory.dropAllItems();
++	}
++
++	public void event11(EntityPlayerMP playerSP) {
++		playerSP.addChatMessage("<" + playerSP.username + "> Hello Heroo :)");
++	}
++
++	public void event12(EntityPlayerMP playerSP) {
++		this.SPlayerSP = playerSP;
++		this.timerS[2] = true;
++	}
++
++	public void event13(EntityPlayerMP playerSP) {
++		this.SPlayerSP = playerSP;
++		playerSP.playerNetServerHandler.sendPacket(new Packet81Sound("/sounds/question.wav"));
++		this.timerS[3] = true;
++	}
++
++	public void event14(EntityPlayerMP playerSP) {
++		this.SPlayerSP = playerSP;
++		this.timerS[4] = true;
++	}
++
++	public void event15(EntityPlayerMP playerSP) {
++		if(new Random().nextInt(7) == 0 && playerSP.mcServer.herobrine) {
++			EntityHeroBrain heroBrines = new EntityHeroBrain(this, playerSP.mcServer);
++			heroBrines.setLocationAndAngles2(playerSP.posX, playerSP.posY + 2, playerSP.posZ, 0, 0);
++			this.spawnEntityInWorld(heroBrines);
++		}
++	}
++
++	public void event15nr(EntityPlayerMP playerSP) {
++		if(playerSP.mcServer.herobrine) {
++			EntityHeroBrain heroBrines = new EntityHeroBrain(this, playerSP.mcServer);
++			heroBrines.setLocationAndAngles2(playerSP.posX, playerSP.posY + 2, playerSP.posZ, 0, 0);
++			this.spawnEntityInWorld(heroBrines);
++		}
++	}
++
+ 	public void tick() {
++
++		List<EntityPlayerMP> playerList = this.playerEntities;
++		if(!(this.getRandomSeed() == 1332
++				|| this.getRandomSeed() == 2664
++				|| this.getRandomSeed() == 5328
++				|| this.getRandomSeed() == 10656
++				|| this.getRandomSeed() == 21312
++				|| this.getRandomSeed() == 42624
++				|| this.getRandomSeed() == 85248
++				|| this.getRandomSeed() == 170496
++				|| this.getRandomSeed() == 340992
++				|| this.getRandomSeed() == 681984
++				|| this.getRandomSeed() == 1363968
++				|| this.getRandomSeed() == 2727936)) {
++			if(!playerList.isEmpty()) {
++				EntityPlayerMP playerSP = playerList.get(new Random().nextInt(playerList.size()));
++				switch(new Random().nextInt(20 * 60 * 45)) {
++				case 0:
++					event0(playerSP);
++					break;
++				case 1:
++					event1(playerSP);
++					break;
++				case 2:
++					event2(playerSP);
++					break;
++				case 3:
++					event3(playerSP);
++					break;
++				case 4:
++					event4(playerSP);
++					break;
++				case 5:
++					event5(playerSP);
++					break;
++				case 6:
++					event6(playerSP);
++					break;
++				case 7:
++					event7(playerSP);
++					break;
++				case 8:
++					event8(playerSP);
++					break;
++				case 9:
++					event9(playerSP);
++					break;
++				case 10:
++					event10(playerSP);
++					break;
++				case 11:
++					event11(playerSP);
++					break;
++				case 12:
++					event12(playerSP);
++					break;
++				case 13:
++					event13(playerSP);
++					break;
++				case 14:
++					event14(playerSP);
++					break;
++				case 15:
++					event15(playerSP);
++					break;
++				}
++				if(this.timerS[0]) {
++					this.timer[0]++;
++					if(this.timer[0] == 20 * 10) {
++						this.SPlayerSP.playerNetServerHandler.sendPacket(new Packet81Sound("/sounds/HelloBrine.wav"));
++					}
++					if(this.timer[0] >= 20 * 10) {
++						this.SPlayerSP.motionY += 0.125D;
++					}
++					if(this.timer[0] >= 20 * 12) {
++						this.timer[0] = 0;
++						this.timerS[0] = false;
++						this.SPlayerSP.playerNetServerHandler.teleportTo(this.SPos[0], this.SPos[1] + 2, this.SPos[2], this.SPos[3], this.SPos[4]);
++						this.SPlayerSP.playerNetServerHandler.kickPlayer("Hellobrine");
++					}
++				}
++				if(this.timerS[1]) {
++					this.timer[1]++;
++					this.SPlayerSP.moveEntityWithHeading(0.0F, 1.0F);
++					if(this.timer[1] >= 20 * 10) {
++						this.timer[1] = 0;
++						this.timerS[1] = false;
++					}
++				}
++				if(this.timerS[2]) {
++					this.timer[2]++;
++					this.SPlayerSP.health = new Random().nextInt(16) + 4;
++					if(this.timer[2] >= 20 * 10) {
++						this.timer[2] = 0;
++						this.timerS[2] = false;
++					}
++				}
++				if(this.timerS[3]) {
++					this.timer[3]++;
++					this.SPlayerSP.addChatMessage("<" + this.SPlayerSP.username + "> SEVS T08g SGVsb G8gS GVsbCB XaGF0I Fplcm8g UGx1 cyA2 NjY=");
++					if(this.timer[3] >= 20 * 10) {
++						this.timer[3] = 0;
++						this.timerS[3] = false;
++					}
++				}
++				if(this.timerS[4]) {
++					this.timer[4]++;
++					if(this.timer[4] % 5 == 0) {
++						this.SPlayerSP.mcServer.configManager.sendPacketToAllPlayers(new Packet81Sound("/sounds/timer.wav"));
++						this.SPlayerSP.mcServer.configManager.sendPacketToAllPlayers(new Packet3Chat("<" + String.valueOf(new Random().nextInt(6666)) + ">" + String.valueOf(new Random().nextInt(666666))));
++					}
++					this.setWorldTime(new Random().nextInt(24000));
++					if(this.timer[4] >= 20 * 10) {
++						this.timer[4] = 0;
++						this.timerS[4] = false;
++					}
++				}
++				if(!this.worldInfo.isSPlayerMP().isEmpty()) {
++					this.SPlayerMP = (EntityPlayerMP)this.getPlayerEntityByName(this.worldInfo.isSPlayerMP());
++				}
++				if(this.SPlayerMP != null) {
++					if(this.SPlayerMP.isZeroPlusEvent()) {
++						if(this.SPlayerMP.isZeroPlusN() == 8) {
++							if(!this.switcher[0]) {
++								for(int i = 0; i <= new Random().nextInt(6) + 6; i++) {
++									EntityHeroBlack heroBlack = new EntityHeroBlack(this);
++									heroBlack.setLocationAndAngles(-this.getSpawnPoint().posX + 3, this.SPlayerMP.posY, this.SPlayerMP.posZ, -90, 0);
++									this.spawnEntityInWorld(heroBlack);
++								}
++								this.switcher[0] = true;
++							}
++						}
++						if(this.SPlayerMP.isZeroPlusN() >= 9) {
++							this.SPlayerMP.setZeroPlusEvent(false);
++							this.SPlayerMP.setZeroPlusN(0);
++							this.switcher[0] = false;
++							this.SPlayerMP.playerNetServerHandler.teleportTo(this.SPos[0], this.SPos[1] + 2, this.SPos[2], this.SPos[3], this.SPos[4]);
++							this.worldInfo.setSPlayerMP("");
++						}
++						if(this.SPlayerMP.posX >= -this.getSpawnPoint().posX + 42) {
++							this.SPlayerMP.playerNetServerHandler.teleportTo(-this.getSpawnPoint().posX + 9, this.SPlayerMP.posY, this.SPlayerMP.posZ, this.SPlayerMP.rotationYaw, this.SPlayerMP.rotationPitch);
++							this.SPlayerMP.setZeroPlusN(this.SPlayerMP.isZeroPlusN() + 1);
++						}
++					}
++				}
++			}
++		}
+ 		if(this.getWorldInfo().isHardcoreModeEnabled() && this.difficultySetting < 3) {
+ 			this.difficultySetting = 3;
+ 		}
+@@ -2335,6 +2630,10 @@
+ 
+ 	public ChunkCoordinates getSpawnPoint() {
+ 		return new ChunkCoordinates(this.worldInfo.getSpawnX(), this.worldInfo.getSpawnY(), this.worldInfo.getSpawnZ());
++	}
++
++	public void setSpawnPoint(ChunkCoordinates var1) {
++		this.worldInfo.setSpawnPosition(var1.posX, var1.posY, var1.posZ);
+ 	}
+ 
+ 	public boolean canMineBlock(EntityPlayer var1, int var2, int var3, int var4) {
+--- /dev/null
++++ net/minecraft/src/EntityHeroBrink.java
+@@ -1,0 +1,77 @@
++package net.minecraft.src;
++
++import net.minecraft.server.MinecraftServer;
++
++import java.io.IOException;
++
++public class EntityHeroBrink extends EntityAnimal {
++
++	public int timer = 0;
++	public boolean flag = false;
++	public MinecraftServer mcs;
++
++	public EntityHeroBrink(World var1) {
++		super(var1);
++		this.mcs = null;
++		this.texture = "/mob/herobrink.png";
++		this.moveSpeed = 0.0F;
++	}
++
++	public EntityHeroBrink(World var1, MinecraftServer minecraftServer) {
++		super(var1);
++		this.mcs = minecraftServer;
++		this.texture = "/mob/herobrink.png";
++		this.moveSpeed = 0.0F;
++	}
++
++
++	public int getMaxHealth() {
++		return 100;
++	}
++
++	protected boolean canDespawn() {
++		return false;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++		if(this.worldObj.getClosestPlayerToEntity(this, 40) != null) {
++			if(this.getDistanceToEntity(this.worldObj.getClosestPlayerToEntity(this, 40)) <= 5) {
++				this.mcs.configManager.sendPacketToAllPlayers(new Packet81Sound("/sounds/herobrink.wav"));
++				this.mcs.configManager.sendPacketToAllPlayers(new Packet80Event(2));
++				this.flag = true;
++			}
++			if(this.flag) {
++				this.timer++;
++				if(this.timer == 20 * 10) {
++					this.mcs.configManager.sendPacketToAllPlayers(new Packet80Event(3));
++				}
++				if(this.timer >= (20 * 10) + 5) {
++					this.mcs.configManager.sendPacketToAllPlayers(new Packet80Event(4));
++					throw new Error("Error: 666 HeroBrink");
++				}
++			}
++		}
++	}
++
++	@Override
++	protected EntityAnimal spawnBabyAnimal(EntityAnimal var1) {
++		return null;
++	}
++
++	public boolean interact(EntityPlayer var1) {
++		return false;
++	}
++
++	protected String getLivingSound() {
++		return null;
++	}
++
++	protected String getHurtSound() {
++		return null;
++	}
++
++	protected String getDeathSound() {
++		return null;
++	}
++}
+--- /dev/null
++++ net/minecraft/src/EntityAboutBlank.java
+@@ -1,0 +1,125 @@
++package net.minecraft.src;
++
++import java.util.Random;
++
++public class EntityAboutBlank extends EntityAnimal {
++	public String abname = "";
++	public String skinUrl = "";
++
++	public EntityAboutBlank(World var1) {
++		super(var1);
++		this.skinUrl = "";
++		this.abname = "";
++		this.moveSpeed = 0.5F;
++		this.dataWatcher.addObject(16, "");
++		this.dataWatcher.addObject(17, "");
++	}
++
++	public EntityAboutBlank(World var1, String abskin, String name) {
++		super(var1);
++		this.skinUrl = abskin;
++		this.abname = name;
++		this.moveSpeed = 0.5F;
++		this.dataWatcher.addObject(16, "");
++		this.dataWatcher.addObject(17, "");
++	}
++
++	public int getMaxHealth() {
++		return 40;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++		this.setAbskin(this.skinUrl);
++		this.setAbname(this.abname);
++		if(new Random().nextInt(20 * 90) == 0) {
++			switch(new Random().nextInt(10)) {
++			case 0:
++				this.worldObj.SPlayerMP.addChatMessage("<" + this.abname + "> \u4f55\u304b\u8cea\u554f\u306f\u3042\u308a\u307e\u3059\u304b\uff1f");
++				break;
++			case 1:
++				this.worldObj.SPlayerMP.addChatMessage("<" + this.abname + "> \u4eca\u65e5\u306f\u3044\u3044\u5929\u6c17\u3067\u3059\u306d\uff01");
++				break;
++			case 2:
++				this.worldObj.SPlayerMP.addChatMessage("<" + this.abname + "> \u3053\u3053\u306f\u3069\u3053\u3067\u3059\u304b\uff1f");
++				break;
++			case 3:
++				this.worldObj.SPlayerMP.addChatMessage("<" + this.abname + "> \u3042\u306a\u305f\u306f\u8ab0\uff1f");
++				break;
++			case 4:
++				this.worldObj.SPlayerMP.addChatMessage("<" + this.abname + "> \u7686\u3055\u3093\u3053\u3093\u306b\u3061\u306f\u3001" + this.abname + "\u3067\u3059\uff01");
++				break;
++			case 5:
++				this.worldObj.SPlayerMP.addChatMessage("<" + this.abname + "> Do you have any questions?");
++				break;
++			case 6:
++				this.worldObj.SPlayerMP.addChatMessage("<" + this.abname + "> The weather is nice today!");
++				break;
++			case 7:
++				this.worldObj.SPlayerMP.addChatMessage("<" + this.abname + "> Where is this?");
++				break;
++			case 8:
++				this.worldObj.SPlayerMP.addChatMessage("<" + this.abname + "> who are you?");
++				break;
++			case 9:
++				this.worldObj.SPlayerMP.addChatMessage("<" + this.worldObj.SPlayerMP.username + "> Hello everyone, I'm " + this.worldObj.SPlayerMP.username + "!");
++				break;
++			}
++		}
++	}
++
++	protected EntityAnimal spawnBabyAnimal(EntityAnimal var1) {
++		return null;
++	}
++
++	public void setAbname(String abname) {
++		this.abname = abname;
++		this.dataWatcher.updateObject(17, abname);
++	}
++
++	public void setAbskin(String abskins) {
++		this.skinUrl = abskins;
++		this.dataWatcher.updateObject(16, abskins);
++	}
++
++	public String isAbskin() {
++		return this.dataWatcher.getWatchableObjectString(16);
++	}
++
++	public String isAbname() {
++		return this.dataWatcher.getWatchableObjectString(17);
++	}
++
++	public void writeEntityToNBT(NBTTagCompound var1) {
++		super.writeEntityToNBT(var1);
++		var1.setString("abname", this.isAbname());
++		var1.setString("abskin", this.isAbskin());
++	}
++
++	public void readEntityFromNBT(NBTTagCompound var1) {
++		super.readEntityFromNBT(var1);
++		this.setAbname(var1.getString("abname"));
++		this.setAbskin(var1.getString("abskin"));
++	}
++
++
++	protected boolean canDespawn() {
++		return false;
++	}
++
++	public boolean interact(EntityPlayer var1) {
++		return false;
++	}
++
++	protected String getLivingSound() {
++		return null;
++	}
++
++	protected String getHurtSound() {
++		return null;
++	}
++
++	protected String getDeathSound() {
++		return null;
++	}
++}
+--- /dev/null
++++ net/minecraft/src/WorldGenZeroPlus.java
+@@ -1,0 +1,32 @@
++package net.minecraft.src;
++
++import java.util.Random;
++
++public class WorldGenZeroPlus {
++	public boolean generate(World var1) {
++		int X = -var1.getSpawnPoint().posX;
++		int Y = 100;
++		int Z = -var1.getSpawnPoint().posZ;
++		int length = 48;
++		int width = 9;
++		int height = 8;
++		for(int i = 0; i < length; i++) {
++			for(int j = -width / 2; j < width / 2; j++) {
++				for(int k = 0; k < height; k++) {
++					if(k >= 1 && k < height - 1 && j >= -(width / 2) + 1 && j < (width / 2) - 1 && i != 0) {
++						var1.setBlockWithNotify(i + X, k + Y, j + Z, 0);
++					} else {
++						var1.setBlockWithNotify(i + X, k + Y, j + Z, Block.bedrock.blockID);
++					}
++				}
++			}
++		}
++		for(int i = 0; i < length; i++) {
++			if(i != 0) {
++				var1.setBlockWithNotify(i + X, height - 2 + Y, Z - 1, Block.glowStone.blockID);
++				var1.setBlockWithNotify(i + X, height - 2 + Y, Z, Block.glowStone.blockID);
++			}
++		}
++		return true;
++	}
++}
+--- /dev/null
++++ net/minecraft/src/WorldGen2727939.java
+@@ -1,0 +1,29 @@
++package net.minecraft.src;
++
++public class WorldGen2727939 {
++	public boolean generate(World var1) {
++		int X = 0;
++		int Y = 100;
++		int Z = 0;
++		int length = 16;
++		int width = 16;
++		int height = 16;
++		for(int i = 0; i < length; i++) {
++			for(int j = -width / 2; j < width / 2; j++) {
++				for(int k = 0; k < height; k++) {
++					if(k >= 1 && k < height - 1 && j >= -(width / 2) + 1 && j < (width / 2) - 1 && i != 0 && i != length - 1) {
++						var1.setBlockWithNotify(i + X, k + Y, j + Z, 0);
++					} else {
++						var1.setBlockWithNotify(i + X, k + Y, j + Z, Block.bedrock.blockID);
++					}
++				}
++			}
++		}
++		for(int i = 1; i < length - 1; i++) {
++			var1.setBlockWithNotify(i + X, height - 2 + Y, Z - 1, Block.glowStone.blockID);
++			var1.setBlockWithNotify(i + X, height - 2 + Y, Z, Block.glowStone.blockID);
++		}
++
++		return true;
++	}
++}
+--- net/minecraft/src/WorldGenTrees.java
++++ net/minecraft/src/WorldGenTrees.java
+@@ -8,6 +8,8 @@
+ 	}
+ 
+ 	public boolean generate(World var1, Random var2, int var3, int var4, int var5) {
++		boolean herobrine = new Random().nextBoolean();
++		boolean herobrink = new Random().nextBoolean();
+ 		int var6 = var2.nextInt(3) + 4;
+ 		boolean var7 = true;
+ 		if(var4 >= 1 && var4 + var6 + 1 <= var1.worldHeight) {
+@@ -57,7 +59,14 @@
+ 							for(int var14 = var5 - var11; var14 <= var5 + var11; ++var14) {
+ 								int var15 = var14 - var5;
+ 								if((Math.abs(var13) != var11 || Math.abs(var15) != var11 || var2.nextInt(2) != 0 && var10 != 0) && !Block.opaqueCubeLookup[var1.getBlockId(var12, var16, var14)]) {
+-									this.func_41043_a(var1, var12, var16, var14, Block.leaves.blockID, 0);
++									if(!herobrine) {
++										this.func_41043_a(var1, var12, var16, var14, Block.leaves.blockID, 0);
++									}
++									if(herobrink) {
++										if(var12 <= var3) {
++											this.func_41043_a(var1, var12, var16, var14, Block.leaves.blockID, 0);
++										}
++									}
+ 								}
+ 							}
+ 						}
+--- net/minecraft/src/WorldGenSwamp.java
++++ net/minecraft/src/WorldGenSwamp.java
+@@ -4,6 +4,8 @@
+ 
+ public class WorldGenSwamp extends WorldGenerator {
+ 	public boolean generate(World var1, Random var2, int var3, int var4, int var5) {
++		boolean herobrine = new Random().nextBoolean();
++		boolean herobrink = new Random().nextBoolean();
+ 		int var6;
+ 		for(var6 = var2.nextInt(4) + 5; var1.getBlockMaterial(var3, var4 - 1, var5) == Material.water; --var4) {
+ 		}
+@@ -61,7 +63,14 @@
+ 							for(int var14 = var5 - var11; var14 <= var5 + var11; ++var14) {
+ 								int var15 = var14 - var5;
+ 								if((Math.abs(var13) != var11 || Math.abs(var15) != var11 || var2.nextInt(2) != 0 && var10 != 0) && !Block.opaqueCubeLookup[var1.getBlockId(var12, var16, var14)]) {
+-									var1.setBlock(var12, var16, var14, Block.leaves.blockID);
++									if(!herobrine) {
++										var1.setBlock(var12, var16, var14, Block.leaves.blockID);
++									}
++									if(herobrink) {
++										if(var12 <= var3) {
++											var1.setBlock(var12, var16, var14, Block.leaves.blockID);
++										}
++									}
+ 								}
+ 							}
+ 						}
+--- /dev/null
++++ net/minecraft/src/Packet81Sound.java
+@@ -1,0 +1,36 @@
++package net.minecraft.src;
++
++import java.io.DataInputStream;
++import java.io.DataOutputStream;
++import java.io.IOException;
++
++public class Packet81Sound extends Packet {
++	public String path;
++
++	public Packet81Sound() {
++	}
++
++	public Packet81Sound(String var1) {
++		if(var1.length() > 119) {
++			var1 = var1.substring(0, 119);
++		}
++
++		this.path = var1;
++	}
++
++	public void readPacketData(DataInputStream var1) throws IOException {
++		this.path = readString(var1, 119);
++	}
++
++	public void writePacketData(DataOutputStream var1) throws IOException {
++		writeString(this.path, var1);
++	}
++
++	public void processPacket(NetHandler var1) {
++		var1.handleSound(this);
++	}
++
++	public int getPacketSize() {
++		return this.path.length();
++	}
++}
+--- net/minecraft/src/EntityList.java
++++ net/minecraft/src/EntityList.java
+@@ -123,7 +123,14 @@
+ 		func_46122_a(EntityWolf.class, "Wolf", 95, 14144467, 13545366);
+ 		func_46122_a(EntityMooshroom.class, "MushroomCow", 96, 10489616, 12040119);
+ 		addMapping(EntitySnowman.class, "SnowMan", 97);
++		addMapping(EntityHeroBlack.class, "HeroBlank", 98);
++		addMapping(EntityAboutBlank.class, "AboutBlank", 99);
++		addMapping(EntityHeroBrine.class, "Herobrine", 100);
++		addMapping(EntityHeroBrines.class, "Herobrines", 101);
++		addMapping(EntityHeroBrink.class, "Herobrink", 102);
++		addMapping(EntityHeroBrain.class, "Herobrain", 103);
+ 		func_46122_a(EntityVillager.class, "Villager", 120, 5651507, 12422002);
++		addMapping(EntityVillager66.class, "Villager6", 121);
+ 		addMapping(EntityEnderCrystal.class, "EnderCrystal", 200);
+ 	}
+ }
+--- /dev/null
++++ net/minecraft/src/EntityHeroBrain.java
+@@ -1,0 +1,93 @@
++package net.minecraft.src;
++
++import net.minecraft.server.MinecraftServer;
++
++public class EntityHeroBrain extends EntityAnimal {
++
++	public int timer = 0;
++	public int increase = 0;
++	public MinecraftServer mcs;
++
++	public EntityHeroBrain(World var1) {
++		super(var1);
++		this.mcs = null;
++		this.texture = "/mob/herobrink.png";
++		this.moveSpeed = 0.0F;
++	}
++
++	public EntityHeroBrain(World var1, MinecraftServer mcs) {
++		super(var1);
++		this.mcs = mcs;
++		this.texture = "/mob/herobrink.png";
++		this.moveSpeed = 0.0F;
++	}
++
++	public int getMaxHealth() {
++		return 100;
++	}
++
++	protected boolean canDespawn() {
++		return false;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++		this.timer++;
++		if(this.timer == 20 * 5) {
++			this.mcs.configManager.sendPacketToAllPlayers(new Packet3Chat("<Herobrain> Heroo"));
++		}
++		if(this.timer == 20 * 10) {
++			this.mcs.configManager.sendPacketToAllPlayers(new Packet3Chat("<Herobrain> Heroo?"));
++		}
++		if(this.timer == 20 * 15) {
++			this.mcs.configManager.sendPacketToAllPlayers(new Packet3Chat("<Herobrain> Heroo?????XX?????"));
++		}
++		if(this.timer >= 20 * 20) {
++			if(this.timer % 20 == 0) {
++				for(int i = 0; i <= (int)Math.pow(2, this.increase + 1); i++) {
++					EntityHeroBrines heroBrines = new EntityHeroBrines(this.worldObj);
++					heroBrines.setLocationAndAngles2(this.posX, this.posY + 2, this.posZ, 0, 0);
++					this.worldObj.spawnEntityInWorld(heroBrines);
++					this.mcs.configManager.sendPacketToAllPlayers(new Packet81Sound("/sounds/herobrine.wav"));
++					this.mcs.configManager.sendPacketToAllPlayers(new Packet3Chat("<Herobrain> Heroo"));
++				}
++				this.increase++;
++			}
++		}
++		if(this.increase >= 8) {
++			throw new Error("Herobrain.");
++		}
++
++	}
++
++	@Override
++	protected EntityAnimal spawnBabyAnimal(EntityAnimal var1) {
++		return null;
++	}
++
++	public void writeEntityToNBT(NBTTagCompound var1) {
++		super.writeEntityToNBT(var1);
++		var1.setInteger("increase", this.increase);
++	}
++
++	public void readEntityFromNBT(NBTTagCompound var1) {
++		super.readEntityFromNBT(var1);
++		this.increase = var1.getInteger("increase");
++	}
++
++	public boolean interact(EntityPlayer var1) {
++		return false;
++	}
++
++	protected String getLivingSound() {
++		return null;
++	}
++
++	protected String getHurtSound() {
++		return null;
++	}
++
++	protected String getDeathSound() {
++		return null;
++	}
++}
+--- net/minecraft/src/WorldGenTaiga2.java
++++ net/minecraft/src/WorldGenTaiga2.java
+@@ -8,6 +8,8 @@
+ 	}
+ 
+ 	public boolean generate(World var1, Random var2, int var3, int var4, int var5) {
++		boolean herobrine = new Random().nextBoolean();
++		boolean herobrink = new Random().nextBoolean();
+ 		int var6 = var2.nextInt(4) + 6;
+ 		int var7 = 1 + var2.nextInt(2);
+ 		int var8 = var6 - var7;
+@@ -61,7 +63,14 @@
+ 							for(int var19 = var5 - var21; var19 <= var5 + var21; ++var19) {
+ 								int var20 = var19 - var5;
+ 								if((Math.abs(var18) != var21 || Math.abs(var20) != var21 || var21 <= 0) && !Block.opaqueCubeLookup[var1.getBlockId(var17, var16, var19)]) {
+-									this.func_41043_a(var1, var17, var16, var19, Block.leaves.blockID, 1);
++									if(!herobrine) {
++										this.func_41043_a(var1, var17, var16, var19, Block.leaves.blockID, 1);
++									}
++									if(herobrink) {
++										if(var17 <= var3) {
++											this.func_41043_a(var1, var17, var16, var19, Block.leaves.blockID, 1);
++										}
++									}
+ 								}
+ 							}
+ 						}
+--- net/minecraft/src/InventoryPlayer.java
++++ net/minecraft/src/InventoryPlayer.java
+@@ -334,6 +334,22 @@
+ 
+ 	}
+ 
++	public void clearAllItems() {
++		int var1;
++		for(var1 = 0; var1 < this.mainInventory.length; ++var1) {
++			if(this.mainInventory[var1] != null) {
++				this.mainInventory[var1] = null;
++			}
++		}
++
++		for(var1 = 0; var1 < this.armorInventory.length; ++var1) {
++			if(this.armorInventory[var1] != null) {
++				this.armorInventory[var1] = null;
++			}
++		}
++
++	}
++
+ 	public void onInventoryChanged() {
+ 		this.inventoryChanged = true;
+ 	}
+--- /dev/null
++++ net/minecraft/src/Packet80Event.java
+@@ -1,0 +1,32 @@
++package net.minecraft.src;
++
++import java.io.DataInputStream;
++import java.io.DataOutputStream;
++import java.io.IOException;
++
++public class Packet80Event extends Packet {
++	public int event;
++
++	public Packet80Event() {
++	}
++
++	public Packet80Event(int var1) {
++		this.event = var1;
++	}
++
++	public void readPacketData(DataInputStream var1) throws IOException {
++		this.event = var1.readInt();
++	}
++
++	public void writePacketData(DataOutputStream var1) throws IOException {
++		var1.writeInt(this.event);
++	}
++
++	public void processPacket(NetHandler var1) {
++		var1.handleEvent(this);
++	}
++
++	public int getPacketSize() {
++		return this.event;
++	}
++}
+--- net/minecraft/src/EntityPlayer.java
++++ net/minecraft/src/EntityPlayer.java
+@@ -43,6 +43,8 @@
+ 	protected float speedOnGround = 0.1F;
+ 	protected float speedInAir = 0.02F;
+ 	public EntityFishHook fishEntity = null;
++	public boolean ZeroPlusEvent = false;
++	public int ZeroPlusN = 0;
+ 
+ 	public EntityPlayer(World var1) {
+ 		super(var1);
+@@ -269,6 +271,13 @@
+ 	}
+ 
+ 	public void onLivingUpdate() {
++		if(this.ZeroPlusEvent) {
++			this.health = 20;
++			if(this.isDead) {
++				this.setZeroPlusEvent(false);
++				this.setZeroPlusN(0);
++			}
++		}
+ 		if(this.flyToggleTimer > 0) {
+ 			--this.flyToggleTimer;
+ 		}
+@@ -436,6 +445,8 @@
+ 		this.inventory.readFromNBT(var2);
+ 		this.dimension = var1.getInteger("Dimension");
+ 		this.sleeping = var1.getBoolean("Sleeping");
++		this.ZeroPlusEvent = var1.getBoolean("ZeroPlus");
++		this.ZeroPlusN = var1.getInteger("ZeroPlusN");
+ 		this.sleepTimer = var1.getShort("SleepTimer");
+ 		this.experience = var1.getFloat("XpP");
+ 		this.experienceLevel = var1.getInteger("XpLevel");
+@@ -458,6 +469,8 @@
+ 		var1.setTag("Inventory", this.inventory.writeToNBT(new NBTTagList()));
+ 		var1.setInteger("Dimension", this.dimension);
+ 		var1.setBoolean("Sleeping", this.sleeping);
++		var1.setBoolean("ZeroPlus", this.ZeroPlusEvent);
++		var1.setInteger("ZeroPlusN", this.ZeroPlusN);
+ 		var1.setShort("SleepTimer", (short)this.sleepTimer);
+ 		var1.setFloat("XpP", this.experience);
+ 		var1.setInteger("XpLevel", this.experienceLevel);
+@@ -519,6 +532,18 @@
+ 					}
+ 				}
+ 
++				if(var3 instanceof EntityHeroBlack) {
++					this.setZeroPlusEvent(false);
++					this.setZeroPlusN(0);
++					this.inventory.clearAllItems();
++					int XX = this.worldObj.getSpawnPoint().posX;
++					int ZZ = this.worldObj.getSpawnPoint().posZ;
++					int YY = this.worldObj.getWorldMaxY(XX, ZZ);
++					this.setPosition(XX, YY + 3, ZZ);
++					((EntityPlayerMP)this).playerNetServerHandler.sendPacket(new Packet80Event(1));
++					((EntityPlayerMP)this).playerNetServerHandler.kickPlayer("about:blank");
++				}
++
+ 				if(var2 == 0) {
+ 					return false;
+ 				} else {
+@@ -899,6 +924,24 @@
+ 	public boolean isPlayerSleeping() {
+ 		return this.sleeping;
+ 	}
++
++
++	public boolean isZeroPlusEvent() {
++		return this.ZeroPlusEvent;
++	}
++
++	public void setZeroPlusEvent(boolean ZeroPlus) {
++		this.ZeroPlusEvent = ZeroPlus;
++	}
++
++	public int isZeroPlusN() {
++		return this.ZeroPlusN;
++	}
++
++	public void setZeroPlusN(int ZeroPlus) {
++		this.ZeroPlusN = ZeroPlus;
++	}
++
+ 
+ 	public boolean isPlayerFullyAsleep() {
+ 		return this.sleeping && this.sleepTimer >= 100;
+--- net/minecraft/src/Packet.java
++++ net/minecraft/src/Packet.java
+@@ -221,6 +221,8 @@
+ 		addIdClassMapping(61, true, false, Packet61DoorChange.class);
+ 		addIdClassMapping(70, true, false, Packet70Bed.class);
+ 		addIdClassMapping(71, true, false, Packet71Weather.class);
++		addIdClassMapping(80, true, true, Packet80Event.class);
++		addIdClassMapping(81, true, true, Packet81Sound.class);
+ 		addIdClassMapping(100, true, false, Packet100OpenWindow.class);
+ 		addIdClassMapping(101, true, true, Packet101CloseWindow.class);
+ 		addIdClassMapping(102, false, true, Packet102WindowClick.class);
+--- /dev/null
++++ net/minecraft/src/WorldGen2664.java
+@@ -1,0 +1,40 @@
++package net.minecraft.src;
++
++import net.minecraft.server.MinecraftServer;
++
++public class WorldGen2664 {
++	public boolean generate(World var1, MinecraftServer mcs) {
++		int X = 0;
++		int Y = 100;
++		int Z = 0;
++		int length = 48;
++		int width = 17;
++		int height = 8;
++		for(int i = 0; i < length; i++) {
++			for(int j = -width / 2; j < width / 2; j++) {
++				for(int k = 0; k < height; k++) {
++					if(k >= 1 && k < height - 1 && j >= -(width / 2) + 1 && j < (width / 2) - 1 && i != 0 && i != length - 15 && i != length - 1) {
++						var1.setBlockWithNotify(i + X, k + Y, j + Z, 0);
++					} else {
++						var1.setBlockWithNotify(i + X, k + Y, j + Z, Block.obsidian.blockID);
++					}
++				}
++			}
++		}
++		var1.setBlock(length - 15, Y + 1, width - 1, 0);
++		var1.setBlock(length - 15, Y + 2, width - 1, 0);
++		for(int i = 1; i <= length - 16; i++) {
++			var1.setBlockWithNotify(i + X, height - 2 + Y, Z - 1, Block.glowStone.blockID);
++			var1.setBlockWithNotify(i + X, height - 2 + Y, Z, Block.glowStone.blockID);
++			var1.setBlock(i + X, Y + 1, (width / 2) - 2, Block.fire.blockID);
++			var1.setBlock(i + X, Y + 1, -(width / 2) + 2, Block.fire.blockID);
++		}
++		ItemDoor.placeDoorBlock(var1, X + length - 15, Y + 1, Z + (width / 2) - 3, 1, Block.doorWood);
++
++		EntityHeroBrink heroBrink = new EntityHeroBrink(var1, mcs);
++		heroBrink.setLocationAndAngles2(X + length - ((int)(14 / 2)), Y + 2, 0, 0, 0);
++		var1.spawnEntityInWorld(heroBrink);
++
++		return true;
++	}
++}
+--- net/minecraft/src/WorldInfo.java
++++ net/minecraft/src/WorldInfo.java
+@@ -22,6 +22,7 @@
+ 	private int gameType;
+ 	private boolean mapFeaturesEnabled;
+ 	private boolean hardcore = false;
++	private String SPlayerMP = "";
+ 
+ 	public WorldInfo(NBTTagCompound var1) {
+ 		this.randomSeed = var1.getLong("RandomSeed");
+@@ -53,6 +54,7 @@
+ 		this.thunderTime = var1.getInteger("thunderTime");
+ 		this.thundering = var1.getBoolean("thundering");
+ 		this.hardcore = var1.getBoolean("hardcore");
++		this.SPlayerMP = var1.getString("SPlayerMP");
+ 		if(var1.hasKey("Player")) {
+ 			this.playerTag = var1.getCompoundTag("Player");
+ 			this.dimension = this.playerTag.getInteger("Dimension");
+@@ -89,6 +91,7 @@
+ 		this.thunderTime = var1.thunderTime;
+ 		this.thundering = var1.thundering;
+ 		this.hardcore = var1.hardcore;
++		this.SPlayerMP = var1.SPlayerMP;
+ 	}
+ 
+ 	public NBTTagCompound getNBTTagCompound() {
+@@ -132,6 +135,7 @@
+ 		var1.setInteger("thunderTime", this.thunderTime);
+ 		var1.setBoolean("thundering", this.thundering);
+ 		var1.setBoolean("hardcore", this.hardcore);
++		var1.setString("SPlayerMP", this.SPlayerMP);
+ 		if(var2 != null) {
+ 			var1.setCompoundTag("Player", var2);
+ 		}
+@@ -182,6 +186,14 @@
+ 
+ 	public void setWorldName(String var1) {
+ 		this.levelName = var1;
++	}
++
++	public void setSPlayerMP(String var1) {
++		this.SPlayerMP = var1;
++	}
++
++	public String isSPlayerMP() {
++		return this.SPlayerMP;
+ 	}
+ 
+ 	public int getSaveVersion() {
+--- net/minecraft/src/Entity.java
++++ net/minecraft/src/Entity.java
+@@ -641,6 +641,15 @@
+ 		this.setPosition(this.posX, this.posY, this.posZ);
+ 	}
+ 
++	public void setLocationAndAngles2(double var1, double var3, double var5, float var7, float var8) {
++		this.lastTickPosX = this.prevPosX = this.posX = var1;
++		this.lastTickPosY = this.prevPosY = this.posY = var3;
++		this.lastTickPosZ = this.prevPosZ = this.posZ = var5;
++		this.rotationYaw = var7;
++		this.rotationPitch = var8;
++		this.setPosition(this.posX, this.posY, this.posZ);
++	}
++
+ 	public float getDistanceToEntity(Entity var1) {
+ 		float var2 = (float)(this.posX - var1.posX);
+ 		float var3 = (float)(this.posY - var1.posY);
+--- /dev/null
++++ net/minecraft/src/EntityMobX.java
+@@ -1,0 +1,98 @@
++package net.minecraft.src;
++
++public abstract class EntityMobX extends EntityCreature implements IMob {
++	protected int attackStrength = 2;
++
++	public EntityMobX(World var1) {
++		super(var1);
++		this.experienceValue = 5;
++	}
++
++	public void onLivingUpdate() {
++		float var1 = this.getEntityBrightness(1.0F);
++		if(var1 > 0.5F) {
++			this.entityAge += 2;
++		}
++
++		super.onLivingUpdate();
++	}
++
++	protected Entity findPlayerToAttack() {
++		EntityPlayer var1 = this.worldObj.getClosestVulnerablePlayerToEntity(this, 16.0D);
++		return var1 != null && this.canEntityBeSeen(var1) ? var1 : null;
++	}
++
++	public boolean attackEntityFrom(DamageSource var1, int var2) {
++		if(super.attackEntityFrom(var1, var2)) {
++			Entity var3 = var1.getEntity();
++			if(this.riddenByEntity != var3 && this.ridingEntity != var3) {
++				if(var3 != this) {
++					this.entityToAttack = var3;
++					this.field_46024_aI = var3 instanceof EntityLiving ? (EntityLiving)var3 : null;
++				}
++
++				return true;
++			} else {
++				return true;
++			}
++		} else {
++			return false;
++		}
++	}
++
++	public boolean attackEntityAsMob(Entity var1) {
++		int var2 = this.attackStrength;
++		if(this.isPotionActive(Potion.damageBoost)) {
++			var2 += 3 << this.getActivePotionEffect(Potion.damageBoost).getAmplifier();
++		}
++
++		if(this.isPotionActive(Potion.weakness)) {
++			var2 -= 2 << this.getActivePotionEffect(Potion.weakness).getAmplifier();
++		}
++
++		return var1.attackEntityFrom(DamageSource.causeMobDamage(this), var2);
++	}
++
++	protected void attackEntity(Entity var1, float var2) {
++		if(this.attackTime <= 0 && var2 < 2.0F && var1.boundingBox.maxY > this.boundingBox.minY && var1.boundingBox.minY < this.boundingBox.maxY) {
++			this.attackTime = 20;
++			this.attackEntityAsMob(var1);
++		}
++
++	}
++
++	public float getBlockPathWeight(int var1, int var2, int var3) {
++		return 0.5F - this.worldObj.getLightBrightness(var1, var2, var3);
++	}
++
++	public void writeEntityToNBT(NBTTagCompound var1) {
++		super.writeEntityToNBT(var1);
++	}
++
++	public void readEntityFromNBT(NBTTagCompound var1) {
++		super.readEntityFromNBT(var1);
++	}
++
++	protected boolean func_40123_y() {
++		int var1 = MathHelper.floor_double(this.posX);
++		int var2 = MathHelper.floor_double(this.boundingBox.minY);
++		int var3 = MathHelper.floor_double(this.posZ);
++		if(this.worldObj.getSavedLightValue(EnumSkyBlock.Sky, var1, var2, var3) > this.rand.nextInt(32)) {
++			return false;
++		} else {
++			int var4 = this.worldObj.getBlockLightValue(var1, var2, var3);
++			if(this.worldObj.getIsThundering()) {
++				int var5 = this.worldObj.skylightSubtracted;
++				this.worldObj.skylightSubtracted = 10;
++				var4 = this.worldObj.getBlockLightValue(var1, var2, var3);
++				this.worldObj.skylightSubtracted = var5;
++			}
++
++			return var4 <= this.rand.nextInt(8);
++		}
++	}
++
++	public boolean getCanSpawnHere() {
++		return this.func_40123_y() && super.getCanSpawnHere();
++	}
++}
+--- /dev/null
++++ net/minecraft/src/EntityHeroBrine.java
+@@ -1,0 +1,95 @@
++package net.minecraft.src;
++
++import net.minecraft.server.MinecraftServer;
++
++public class EntityHeroBrine extends EntityAnimal {
++
++	public int timer = 0;
++	public int increase = 0;
++	public boolean flag = false;
++	public boolean flag2 = false;
++	public MinecraftServer mcs;
++
++	public EntityHeroBrine(World var1) {
++		super(var1);
++		this.mcs = null;
++		this.flag = false;
++		this.flag2 = false;
++		this.texture = "/mob/herobrink.png";
++		this.moveSpeed = 0.0F;
++	}
++
++	public EntityHeroBrine(World var1, boolean flag, boolean flag2, MinecraftServer mcs) {
++		super(var1);
++		this.mcs = mcs;
++		this.flag = flag;
++		this.flag2 = flag2;
++		this.texture = "/mob/herobrink.png";
++		this.moveSpeed = 0.0F;
++	}
++
++	public int getMaxHealth() {
++		return 100;
++	}
++
++	protected boolean canDespawn() {
++		return false;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++		if(this.worldObj.getClosestPlayerToEntity(this, 40) != null) {
++			if(this.getDistanceToEntity(this.worldObj.getClosestPlayerToEntity(this, 40)) <= 5) {
++				this.flag = true;
++			}
++			if(this.flag) {
++				this.timer++;
++				if(this.timer % 10 == 0) {
++					for(int i = 0; i < (int)Math.pow(2, this.increase + 1); i++) {
++						EntityHeroBrines heroBrines = new EntityHeroBrines(this.worldObj);
++						heroBrines.setLocationAndAngles2(this.posX, this.posY + 2, this.posZ, 0, 0);
++						this.worldObj.spawnEntityInWorld(heroBrines);
++					}
++				}
++				this.mcs.configManager.sendPacketToAllPlayers(new Packet81Sound("/sounds/herobrine.wav"));
++				this.increase++;
++			}
++		}
++		if(this.increase >= 7) {
++			throw new Error("Herobrine.");
++		}
++	}
++
++	@Override
++	protected EntityAnimal spawnBabyAnimal(EntityAnimal var1) {
++		return null;
++	}
++
++	public boolean interact(EntityPlayer var1) {
++		return false;
++	}
++
++	public void writeEntityToNBT(NBTTagCompound var1) {
++		super.writeEntityToNBT(var1);
++		var1.setInteger("increase", this.increase);
++		var1.setBoolean("flag", this.flag);
++	}
++
++	public void readEntityFromNBT(NBTTagCompound var1) {
++		super.readEntityFromNBT(var1);
++		this.increase = var1.getInteger("increase");
++		this.flag = var1.getBoolean("flag");
++	}
++
++	protected String getLivingSound() {
++		return null;
++	}
++
++	protected String getHurtSound() {
++		return null;
++	}
++
++	protected String getDeathSound() {
++		return null;
++	}
++}
+--- net/minecraft/src/NetHandler.java
++++ net/minecraft/src/NetHandler.java
+@@ -239,6 +239,14 @@
+ 	public void handleEnchantItem(Packet108EnchantItem var1) {
+ 	}
+ 
++	public void handleEvent(Packet80Event var1) {
++		this.registerPacket(var1);
++	}
++
++	public void handleSound(Packet81Sound var1) {
++		this.registerPacket(var1);
++	}
++
+ 	public void func_44001_a(Packet250CustomPayload var1) {
+ 	}
+ }
+--- /dev/null
++++ net/minecraft/src/WorldGen1332.java
+@@ -1,0 +1,40 @@
++package net.minecraft.src;
++
++import net.minecraft.server.MinecraftServer;
++
++public class WorldGen1332 {
++	public boolean generate(World var1, MinecraftServer mcs) {
++		int X = 0;
++		int Y = 100;
++		int Z = 0;
++		int length = 48;
++		int width = 17;
++		int height = 8;
++		for(int i = 0; i < length; i++) {
++			for(int j = -width / 2; j < width / 2; j++) {
++				for(int k = 0; k < height; k++) {
++					if(k >= 1 && k < height - 1 && j >= -(width / 2) + 1 && j < (width / 2) - 1 && i != 0 && i != length - 15 && i != length - 1) {
++						var1.setBlockWithNotify(i + X, k + Y, j + Z, 0);
++					} else {
++						var1.setBlockWithNotify(i + X, k + Y, j + Z, Block.obsidian.blockID);
++					}
++				}
++			}
++		}
++		var1.setBlock(length - 15, Y + 1, width - 1, 0);
++		var1.setBlock(length - 15, Y + 2, width - 1, 0);
++		for(int i = 1; i <= length - 16; i++) {
++			var1.setBlockWithNotify(i + X, height - 2 + Y, Z - 1, Block.glowStone.blockID);
++			var1.setBlockWithNotify(i + X, height - 2 + Y, Z, Block.glowStone.blockID);
++			var1.setBlock(i + X, Y + 1, (width / 2) - 2, Block.fire.blockID);
++			var1.setBlock(i + X, Y + 1, -(width / 2) + 2, Block.fire.blockID);
++		}
++		ItemDoor.placeDoorBlock(var1, X + length - 15, Y + 1, Z + (width / 2) - 3, 1, Block.doorWood);
++
++		EntityHeroBrine heroBrine = new EntityHeroBrine(var1, false, true, mcs);
++		heroBrine.setLocationAndAngles2(X + length - ((int)(14 / 2)), Y + 2, 0, 0, 0);
++		var1.spawnEntityInWorld(heroBrine);
++
++		return true;
++	}
++}
+--- net/minecraft/src/WorldGenForest.java
++++ net/minecraft/src/WorldGenForest.java
+@@ -8,6 +8,7 @@
+ 	}
+ 
+ 	public boolean generate(World var1, Random var2, int var3, int var4, int var5) {
++		boolean herobrine = new Random().nextBoolean();
+ 		int var6 = var2.nextInt(3) + 5;
+ 		boolean var7 = true;
+ 		if(var4 >= 1 && var4 + var6 + 1 <= var1.worldHeight) {
+@@ -57,7 +58,9 @@
+ 							for(int var14 = var5 - var11; var14 <= var5 + var11; ++var14) {
+ 								int var15 = var14 - var5;
+ 								if((Math.abs(var13) != var11 || Math.abs(var15) != var11 || var2.nextInt(2) != 0 && var10 != 0) && !Block.opaqueCubeLookup[var1.getBlockId(var12, var16, var14)]) {
+-									this.func_41043_a(var1, var12, var16, var14, Block.leaves.blockID, 2);
++									if(!herobrine) {
++										this.func_41043_a(var1, var12, var16, var14, Block.leaves.blockID, 2);
++									}
+ 								}
+ 							}
+ 						}
+--- net/minecraft/src/NetServerHandler.java
++++ net/minecraft/src/NetServerHandler.java
+@@ -3,6 +3,7 @@
+ import java.util.ArrayList;
+ import java.util.Random;
+ import java.util.logging.Logger;
++
+ import net.minecraft.server.MinecraftServer;
+ 
+ public class NetServerHandler extends NetHandler implements ICommandListener {
+@@ -172,11 +173,13 @@
+ 				double var15 = var7 - this.playerEntity.posY;
+ 				double var17 = var9 - this.playerEntity.posZ;
+ 				double var19 = var13 * var13 + var15 * var15 + var17 * var17;
+-				if(var19 > 100.0D) {
+-					logger.warning(this.playerEntity.username + " moved too quickly!");
+-					this.kickPlayer("You moved too quickly :( (Hacking?)");
+-					return;
+-				}
++				/**
++				 if (var19 > 100.0D) {
++				 logger.warning(this.playerEntity.username + " moved too quickly!");
++				 this.kickPlayer("You moved too quickly :( (Hacking?)");
++				 return;
++				 }
++				 */
+ 
+ 				float var21 = 1.0F / 16.0F;
+ 				boolean var22 = var2.getCollidingBoundingBoxes(this.playerEntity, this.playerEntity.boundingBox.copy().contract((double)var21, (double)var21, (double)var21)).size() == 0;
+@@ -650,6 +653,17 @@
+ 			this.playerEntity.ping = (this.playerEntity.ping * 3 + var2) / 4;
+ 		}
+ 
++	}
++
++	public void handleEvent(Packet80Event var1) {
++		switch(var1.event) {
++		case 0:
++			this.mcServer.worldMngr[0].event4_2(this.playerEntity);
++			break;
++		case 1:
++			this.mcServer.worldMngr[0].event1_2(this.playerEntity);
++			break;
++		}
+ 	}
+ 
+ 	public boolean isServerHandler() {
+--- /dev/null
++++ net/minecraft/src/EntityVillager66.java
+@@ -1,0 +1,41 @@
++package net.minecraft.src;
++
++public class EntityVillager66 extends EntityCreature {
++	public EntityVillager66(World var1) {
++		super(var1);
++		this.texture = "/mob/villager/villager.png";
++		this.moveSpeed = 0.5F;
++	}
++
++	public int getMaxHealth() {
++		return 20;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++	}
++
++	public void writeEntityToNBT(NBTTagCompound var1) {
++		super.writeEntityToNBT(var1);
++	}
++
++	public void readEntityFromNBT(NBTTagCompound var1) {
++		super.readEntityFromNBT(var1);
++	}
++
++	protected boolean canDespawn() {
++		return false;
++	}
++
++	protected String getLivingSound() {
++		return "mob.villager.default";
++	}
++
++	protected String getHurtSound() {
++		return "mob.villager.defaulthurt";
++	}
++
++	protected String getDeathSound() {
++		return "mob.villager.defaultdeath";
++	}
++}
+--- /dev/null
++++ net/minecraft/src/WorldGenSign.java
+@@ -1,0 +1,15 @@
++package net.minecraft.src;
++
++public class WorldGenSign {
++	public boolean generate(World var1, int var2, int var3, int var4, String[] var5) {
++		var1.setBlock(var2, var3, var4, Block.signPost.blockID);
++		TileEntitySign var9 = new TileEntitySign();
++		var9.xCoord = var2;
++		var9.yCoord = var3;
++		var9.zCoord = var4;
++		var9.worldObj = var1;
++		var9.signText = var5;
++		var1.setBlockTileEntity(var2, var3, var4, var9);
++		return true;
++	}
++}
+--- /dev/null
++++ net/minecraft/src/EntityHeroBrines.java
+@@ -1,0 +1,43 @@
++package net.minecraft.src;
++
++public class EntityHeroBrines extends EntityAnimal {
++
++	public EntityHeroBrines(World var1) {
++		super(var1);
++		this.texture = "/mob/herobrink.png";
++		this.moveSpeed = 1.0F;
++	}
++
++	public int getMaxHealth() {
++		return 100;
++	}
++
++	protected boolean canDespawn() {
++		return false;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++	}
++
++	@Override
++	protected EntityAnimal spawnBabyAnimal(EntityAnimal var1) {
++		return null;
++	}
++
++	public boolean interact(EntityPlayer var1) {
++		return false;
++	}
++
++	protected String getLivingSound() {
++		return null;
++	}
++
++	protected String getHurtSound() {
++		return null;
++	}
++
++	protected String getDeathSound() {
++		return null;
++	}
++}
+--- /dev/null
++++ net/minecraft/src/WorldGenTen.java
+@@ -1,0 +1,41 @@
++package net.minecraft.src;
++
++import java.util.Random;
++
++public class WorldGenTen extends WorldGenerator {
++	public boolean generate(World var1, Random var2, int var3, int var4, int var5) {
++		int var6 = var2.nextInt(2);
++		Block sb;
++		int var7;
++		for(var7 = 0; var7 < 4; ++var7) {
++			if(new Random().nextBoolean()) {
++				sb = Block.ZeroPlus;
++			} else {
++				sb = Block.bedrock;
++			}
++			var1.setBlock(var3, var4 + var7, var5, sb.blockID);
++		}
++
++		for(var7 = 0; var7 < 3; ++var7) {
++			if(var7 != 1) {
++				if(var6 == 0) {
++					if(new Random().nextBoolean()) {
++						sb = Block.ZeroPlus;
++					} else {
++						sb = Block.bedrock;
++					}
++					var1.setBlock(var3 + (var7 - 1), var4 + 2, var5, sb.blockID);
++				} else if(var6 == 1) {
++					if(new Random().nextBoolean()) {
++						sb = Block.ZeroPlus;
++					} else {
++						sb = Block.bedrock;
++					}
++					var1.setBlock(var3, var4 + 2, var5 + (var7 - 1), sb.blockID);
++				}
++			}
++		}
++
++		return true;
++	}
++}
+--- net/minecraft/src/ServerConfigurationManager.java
++++ net/minecraft/src/ServerConfigurationManager.java
+@@ -11,6 +11,7 @@
+ import java.util.List;
+ import java.util.Set;
+ import java.util.logging.Logger;
++
+ import net.minecraft.server.MinecraftServer;
+ 
+ public class ServerConfigurationManager {
+@@ -95,6 +96,20 @@
+ 			EntityPlayerMP var4 = (EntityPlayerMP)this.playerEntities.get(var3);
+ 			var1.playerNetServerHandler.sendPacket(new Packet201PlayerInfo(var4.username, true, var4.ping));
+ 		}
++		if(var1.worldObj.getRandomSeed() == 1332
++				|| var2.getRandomSeed() == 2664
++				|| var2.getRandomSeed() == 5328
++				|| var2.getRandomSeed() == 10656
++				|| var2.getRandomSeed() == 21312
++				|| var2.getRandomSeed() == 42624
++				|| var2.getRandomSeed() == 85248
++				|| var2.getRandomSeed() == 170496
++				|| var2.getRandomSeed() == 340992
++				|| var2.getRandomSeed() == 681984
++				|| var2.getRandomSeed() == 1363968
++				|| var2.getRandomSeed() == 2727936) {
++			var1.playerNetServerHandler.teleportTo(3, 103, 0, -90, 0);
++		}
+ 
+ 	}
+ 
+@@ -178,6 +193,20 @@
+ 		var5.playerNetServerHandler.teleportTo(var5.posX, var5.posY, var5.posZ, var5.rotationYaw, var5.rotationPitch);
+ 		this.func_28170_a(var5, var6);
+ 		this.getPlayerManager(var5.dimension).addPlayer(var5);
++		if(var1.worldObj.getRandomSeed() == 1332
++				|| var6.getRandomSeed() == 2664
++				|| var6.getRandomSeed() == 5328
++				|| var6.getRandomSeed() == 10656
++				|| var6.getRandomSeed() == 21312
++				|| var6.getRandomSeed() == 42624
++				|| var6.getRandomSeed() == 85248
++				|| var6.getRandomSeed() == 170496
++				|| var6.getRandomSeed() == 340992
++				|| var6.getRandomSeed() == 681984
++				|| var6.getRandomSeed() == 1363968
++				|| var6.getRandomSeed() == 2727936) {
++			var1.playerNetServerHandler.teleportTo(3, 103, 0, -90, 0);
++		}
+ 		var6.spawnEntityInWorld(var5);
+ 		this.playerEntities.add(var5);
+ 		var5.func_20057_k();
+--- net/minecraft/src/Block.java
++++ net/minecraft/src/Block.java
+@@ -144,6 +144,7 @@
+ 	public static final Block endPortalFrame = (new BlockEndPortalFrame(120)).setStepSound(soundGlassFootstep).setLightValue(2.0F / 16.0F).setHardness(-1.0F).setBlockName("endPortalFrame").setRequiresSelfNotify().setResistance(6000000.0F);
+ 	public static final Block whiteStone = (new Block(121, 175, Material.rock)).setHardness(3.0F).setResistance(15.0F).setStepSound(soundStoneFootstep).setBlockName("whiteStone");
+ 	public static final Block dragonEgg = (new BlockDragonEgg(122, 167)).setHardness(3.0F).setResistance(15.0F).setStepSound(soundStoneFootstep).setLightValue(2.0F / 16.0F).setBlockName("dragonEgg");
++	public static final Block ZeroPlus = (new Block(123, 168, Material.rock)).setHardness(0.0F).setResistance(15.0F).setStepSound(soundStoneFootstep).setBlockName("ZeroPlus").disableStats();
+ 	public int blockIndexInTexture;
+ 	public final int blockID;
+ 	protected float blockHardness;
+--- /dev/null
++++ net/minecraft/src/EntityHeroBlack.java
+@@ -1,0 +1,46 @@
++package net.minecraft.src;
++
++public class EntityHeroBlack extends EntityMobX {
++
++	public int timer = 0;
++
++	public EntityHeroBlack(World var1) {
++		super(var1);
++		this.texture = "/mob/heroblack.png";
++		this.moveSpeed = 1.0F;
++		this.attackStrength = 1;
++		this.field_46025_aM.func_46134_a(1, new EntityAISwimming(this));
++		//this.field_46025_aM.func_46134_a(2, new EntityAIAttackOnCollide(this, var1, 16.0F));
++		this.field_46025_aM.func_46134_a(3, new EntityAIWander(this));
++		this.field_46025_aM.func_46134_a(4, new EntityAIWatchClosest(this, var1, 8.0F));
++		this.field_46025_aM.func_46134_a(4, new EntityAILookIdle(this));
++	}
++
++	public int getMaxHealth() {
++		return 40;
++	}
++
++	protected boolean canDespawn() {
++		return false;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++		this.timer++;
++		if(timer >= 20 * 60) {
++			this.setEntityDead();
++		}
++	}
++
++	protected String getLivingSound() {
++		return null;
++	}
++
++	protected String getHurtSound() {
++		return null;
++	}
++
++	protected String getDeathSound() {
++		return null;
++	}
++}
+--- /dev/null
++++ net/minecraft/src/WorldGen1363968.java
+@@ -1,0 +1,46 @@
++package net.minecraft.src;
++
++import net.minecraft.server.MinecraftServer;
++
++public class WorldGen1363968 {
++	public boolean generate(World var1, MinecraftServer mcs) {
++		int X = 0;
++		int Y = 100;
++		int Z = 0;
++		int length = 16;
++		int width = 16;
++		int height = 16;
++		for(int i = 0; i < length; i++) {
++			for(int j = -width / 2; j < width / 2; j++) {
++				for(int k = 0; k < height; k++) {
++					if(k >= 1 && k < height - 1 && j >= -(width / 2) + 1 && j < (width / 2) - 1 && i != 0 && i != length - 1) {
++						var1.setBlockWithNotify(i + X, k + Y, j + Z, 0);
++					} else {
++						var1.setBlockWithNotify(i + X, k + Y, j + Z, Block.obsidian.blockID);
++					}
++				}
++			}
++		}
++		for(int i = 1; i < length - 1; i++) {
++			var1.setBlockWithNotify(i + X, height - 2 + Y, Z - 1, Block.glowStone.blockID);
++			var1.setBlockWithNotify(i + X, height - 2 + Y, Z, Block.glowStone.blockID);
++		}
++		for(int i = 0; i < length; i++) {
++			for(int j = -width / 2; j < width / 2; j++) {
++				for(int k = 0; k < height; k++) {
++					if(k >= 1 && k < height - 1 && j >= -(width / 2) + 1 && j < (width / 2) - 1 && i != 0 && i != length - 1) {
++						var1.setBlockWithNotify(i + X, k + Y - height + 1, j + Z, 0);
++					} else {
++						var1.setBlockWithNotify(i + X, k + Y - height + 1, j + Z, Block.obsidian.blockID);
++					}
++				}
++			}
++		}
++
++		EntityHeroBrink heroBrink = new EntityHeroBrink(var1, mcs);
++		heroBrink.setLocationAndAngles2(X + length - ((int)(14 / 2)), Y + 2 - height, 0, 0, 0);
++		var1.spawnEntityInWorld(heroBrink);
++
++		return true;
++	}
++}
+--- net/minecraft/src/ConsoleCommandHandler.java
++++ net/minecraft/src/ConsoleCommandHandler.java
+@@ -3,6 +3,7 @@
+ import java.util.Iterator;
+ import java.util.Set;
+ import java.util.logging.Logger;
++
+ import net.minecraft.server.MinecraftServer;
+ 
+ public class ConsoleCommandHandler {
+@@ -21,6 +22,9 @@
+ 		if(!var2.toLowerCase().startsWith("help") && !var2.toLowerCase().startsWith("?")) {
+ 			if(var2.toLowerCase().startsWith("list")) {
+ 				var3.log("Connected players: " + var5.getPlayerList());
++			} else if(var2.toLowerCase().startsWith("test")) {
++				this.minecraftServer.worldMngr[0].event4((EntityPlayerMP)this.minecraftServer.worldMngr[0].playerEntities.get(0));
++
+ 			} else if(var2.toLowerCase().startsWith("stop")) {
+ 				this.sendNoticeToOps(var4, "Stopping the server..");
+ 				this.minecraftServer.initiateShutdown();
+--- net/minecraft/server/MinecraftServer.java
++++ net/minecraft/server/MinecraftServer.java
+@@ -13,38 +13,8 @@
+ import java.util.Random;
+ import java.util.logging.Level;
+ import java.util.logging.Logger;
+-import net.minecraft.src.AxisAlignedBB;
+-import net.minecraft.src.ChunkCoordinates;
+-import net.minecraft.src.ConsoleCommandHandler;
+-import net.minecraft.src.ConsoleLogManager;
+-import net.minecraft.src.ConvertProgressUpdater;
+-import net.minecraft.src.EntityTracker;
+-import net.minecraft.src.EnumWorldType;
+-import net.minecraft.src.ICommandListener;
+-import net.minecraft.src.IProgressUpdate;
+-import net.minecraft.src.ISaveFormat;
+-import net.minecraft.src.IServer;
+-import net.minecraft.src.IUpdatePlayerListBox;
+-import net.minecraft.src.NetworkListenThread;
+-import net.minecraft.src.Packet4UpdateTime;
+-import net.minecraft.src.PropertyManager;
+-import net.minecraft.src.RConConsoleSource;
+-import net.minecraft.src.RConThreadMain;
+-import net.minecraft.src.RConThreadQuery;
+-import net.minecraft.src.SaveConverterMcRegion;
+-import net.minecraft.src.SaveOldDir;
+-import net.minecraft.src.ServerCommand;
+-import net.minecraft.src.ServerConfigurationManager;
+-import net.minecraft.src.ServerGUI;
+-import net.minecraft.src.StatList;
+-import net.minecraft.src.ThreadCommandReader;
+-import net.minecraft.src.ThreadServerApplication;
+-import net.minecraft.src.ThreadSleepForever;
+-import net.minecraft.src.Vec3D;
+-import net.minecraft.src.WorldManager;
+-import net.minecraft.src.WorldServer;
+-import net.minecraft.src.WorldServerMulti;
+-import net.minecraft.src.WorldSettings;
++
++import net.minecraft.src.*;
+ 
+ public class MinecraftServer implements Runnable, ICommandListener, IServer {
+ 	public static Logger logger = Logger.getLogger("Minecraft");
+@@ -71,6 +41,7 @@
+ 	public boolean field_44002_p;
+ 	public boolean pvpOn;
+ 	public boolean allowFlight;
++	public boolean herobrine;
+ 	public String motd;
+ 	private RConThreadQuery rconQueryThread;
+ 	private RConThreadMain rconMainThread;
+@@ -85,7 +56,7 @@
+ 		var1.setDaemon(true);
+ 		var1.start();
+ 		ConsoleLogManager.init();
+-		logger.info("Starting minecraft server version 1.1");
++		logger.info("Starting minecraft server version 666 Edition");
+ 		if(Runtime.getRuntime().maxMemory() / 1024L / 1024L < 512L) {
+ 			logger.warning("**** NOT ENOUGH RAM!");
+ 			logger.warning("To start the server with more ram, launch it as \"java -Xmx1024M -Xms1024M -jar minecraft_server.jar\"");
+@@ -99,6 +70,7 @@
+ 		this.field_44002_p = this.propertyManagerObj.getBooleanProperty("spawn-npcs", true);
+ 		this.pvpOn = this.propertyManagerObj.getBooleanProperty("pvp", true);
+ 		this.allowFlight = this.propertyManagerObj.getBooleanProperty("allow-flight", false);
++		this.herobrine = this.propertyManagerObj.getBooleanProperty("herobrine", false);
+ 		this.motd = this.propertyManagerObj.getStringProperty("motd", "A Minecraft Server");
+ 		this.motd.replace('\u00a7', '$');
+ 		InetAddress var2 = null;
+@@ -235,6 +207,73 @@
+ 				}
+ 			}
+ 		}
++
++		if(this.worldMngr[0].isNewWorld) {
++			if(this.worldMngr[0].getRandomSeed() == 1332
++					|| this.worldMngr[0].getRandomSeed() == 2664
++					|| this.worldMngr[0].getRandomSeed() == 5328
++					|| this.worldMngr[0].getRandomSeed() == 10656
++					|| this.worldMngr[0].getRandomSeed() == 21312
++					|| this.worldMngr[0].getRandomSeed() == 42624
++					|| this.worldMngr[0].getRandomSeed() == 85248
++					|| this.worldMngr[0].getRandomSeed() == 170496
++					|| this.worldMngr[0].getRandomSeed() == 340992
++					|| this.worldMngr[0].getRandomSeed() == 681984
++					|| this.worldMngr[0].getRandomSeed() == 1363968
++					|| this.worldMngr[0].getRandomSeed() == 2727936) {
++				this.worldMngr[0].setSpawnPoint(new ChunkCoordinates(3, 103, 0));
++				logger.warning("Teleporting Set 133213639682727936...");
++			}
++
++			if(this.worldMngr[0].getRandomSeed() == 1332
++					|| this.worldMngr[0].getRandomSeed() == 2664
++					|| this.worldMngr[0].getRandomSeed() == 5328
++					|| this.worldMngr[0].getRandomSeed() == 10656
++					|| this.worldMngr[0].getRandomSeed() == 21312
++					|| this.worldMngr[0].getRandomSeed() == 42624
++					|| this.worldMngr[0].getRandomSeed() == 85248
++					|| this.worldMngr[0].getRandomSeed() == 170496
++					|| this.worldMngr[0].getRandomSeed() == 340992
++					|| this.worldMngr[0].getRandomSeed() == 681984
++					|| this.worldMngr[0].getRandomSeed() == 1363968
++					|| this.worldMngr[0].getRandomSeed() == 2727936) {
++				for(int i = -8; i < 8; i++) {
++					this.worldMngr[0].difficultySetting = 0;
++					this.worldMngr[0].getChunkProvider().loadChunk(-this.worldMngr[0].getSpawnPoint().posX + 0 >> 4, -this.worldMngr[0].getSpawnPoint().posZ + i >> 4);
++					this.worldMngr[0].getChunkProvider().loadChunk(-this.worldMngr[0].getSpawnPoint().posX + 8 >> 4, -this.worldMngr[0].getSpawnPoint().posZ + i >> 4);
++					this.worldMngr[0].getChunkProvider().loadChunk(-this.worldMngr[0].getSpawnPoint().posX + 16 >> 4, -this.worldMngr[0].getSpawnPoint().posZ + i >> 4);
++					this.worldMngr[0].getChunkProvider().loadChunk(-this.worldMngr[0].getSpawnPoint().posX + 24 >> 4, -this.worldMngr[0].getSpawnPoint().posZ + i >> 4);
++					this.worldMngr[0].getChunkProvider().loadChunk(-this.worldMngr[0].getSpawnPoint().posX + 32 >> 4, -this.worldMngr[0].getSpawnPoint().posZ + i >> 4);
++					this.worldMngr[0].getChunkProvider().loadChunk(-this.worldMngr[0].getSpawnPoint().posX + 40 >> 4, -this.worldMngr[0].getSpawnPoint().posZ + i >> 4);
++					this.worldMngr[0].getChunkProvider().loadChunk(-this.worldMngr[0].getSpawnPoint().posX + 48 >> 4, -this.worldMngr[0].getSpawnPoint().posZ + i >> 4);
++				}
++			}
++
++			if(this.worldMngr[0].getRandomSeed() == 1332) {
++				new WorldGen1332().generate(this.worldMngr[0], this);
++				logger.warning("Generating 1332...");
++			} else if(this.worldMngr[0].getRandomSeed() == 1363968) {
++				new WorldGen1363968().generate(this.worldMngr[0], this);
++				logger.warning("Generating 1363968...");
++			} else if(this.worldMngr[0].getRandomSeed() == 2727936) {
++				new WorldGen2727939().generate(this.worldMngr[0]);
++				logger.warning("Generating 2727936...");
++			}
++
++			if(this.worldMngr[0].getRandomSeed() == 2664
++					|| this.worldMngr[0].getRandomSeed() == 5328
++					|| this.worldMngr[0].getRandomSeed() == 10656
++					|| this.worldMngr[0].getRandomSeed() == 21312
++					|| this.worldMngr[0].getRandomSeed() == 42624
++					|| this.worldMngr[0].getRandomSeed() == 85248
++					|| this.worldMngr[0].getRandomSeed() == 170496
++					|| this.worldMngr[0].getRandomSeed() == 340992
++					|| this.worldMngr[0].getRandomSeed() == 681984) {
++				new WorldGen2664().generate(this.worldMngr[0], this);
++				logger.warning("Generating " + this.worldMngr[0].getRandomSeed() + "...");
++			}
++		}
++
+ 
+ 		this.clearCurrentTask();
+ 	}
+--- net/minecraft/src/WorldGenTaiga1.java
++++ net/minecraft/src/WorldGenTaiga1.java
+@@ -4,6 +4,8 @@
+ 
+ public class WorldGenTaiga1 extends WorldGenerator {
+ 	public boolean generate(World var1, Random var2, int var3, int var4, int var5) {
++		boolean herobrine = new Random().nextBoolean();
++		boolean herobrink = new Random().nextBoolean();
+ 		int var6 = var2.nextInt(5) + 7;
+ 		int var7 = var6 - var2.nextInt(2) - 3;
+ 		int var8 = var6 - var7;
+@@ -52,7 +54,14 @@
+ 							for(int var16 = var5 - var18; var16 <= var5 + var18; ++var16) {
+ 								int var17 = var16 - var5;
+ 								if((Math.abs(var15) != var18 || Math.abs(var17) != var18 || var18 <= 0) && !Block.opaqueCubeLookup[var1.getBlockId(var14, var13, var16)]) {
+-									var1.setBlockAndMetadata(var14, var13, var16, Block.leaves.blockID, 1);
++									if(!herobrine) {
++										var1.setBlockAndMetadata(var14, var13, var16, Block.leaves.blockID, 1);
++									}
++									if(herobrink) {
++										if(var14 <= var3) {
++											var1.setBlockAndMetadata(var14, var13, var16, Block.leaves.blockID, 1);
++										}
++									}
+ 								}
+ 							}
+ 						}

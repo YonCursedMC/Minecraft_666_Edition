@@ -1,0 +1,3082 @@
+--- net/minecraft/src/GuiIngameMenu.java
++++ net/minecraft/src/GuiIngameMenu.java
+@@ -56,14 +56,15 @@
+ 
+ 	public void drawScreen(int var1, int var2, float var3) {
+ 		this.drawDefaultBackground();
+-		boolean var4 = !this.mc.theWorld.quickSaveWorld(this.updateCounter2++);
+-		if(var4 || this.updateCounter < 20) {
+-			float var5 = ((float)(this.updateCounter % 10) + var3) / 10.0F;
+-			var5 = MathHelper.sin(var5 * (float)Math.PI * 2.0F) * 0.2F + 0.8F;
+-			int var6 = (int)(255.0F * var5);
+-			this.drawString(this.fontRenderer, "Saving level..", 8, this.height - 16, var6 << 16 | var6 << 8 | var6);
++		if(!this.mc.theWorld.timerS[0]) {
++			boolean var4 = !this.mc.theWorld.quickSaveWorld(this.updateCounter2++);
++			if(var4 || this.updateCounter < 20) {
++				float var5 = ((float)(this.updateCounter % 10) + var3) / 10.0F;
++				var5 = MathHelper.sin(var5 * (float)Math.PI * 2.0F) * 0.2F + 0.8F;
++				int var6 = (int)(255.0F * var5);
++				this.drawString(this.fontRenderer, "Saving level..", 8, this.height - 16, var6 << 16 | var6 << 8 | var6);
++			}
+ 		}
+-
+ 		this.drawCenteredString(this.fontRenderer, "Game menu", this.width / 2, 40, 16777215);
+ 		super.drawScreen(var1, var2, var3);
+ 	}
+--- net/minecraft/src/GuiInventory.java
++++ net/minecraft/src/GuiInventory.java
+@@ -2,6 +2,8 @@
+ 
+ import java.util.Collection;
+ import java.util.Iterator;
++import java.util.Random;
++import org.lwjgl.input.Keyboard;
+ import org.lwjgl.opengl.GL11;
+ import org.lwjgl.opengl.GL12;
+ 
+@@ -130,6 +132,37 @@
+ 				this.fontRenderer.drawStringWithShadow(var10, var1 + 10 + 18, var2 + 6 + 10, 8355711);
+ 			}
+ 
++		}
++	}
++
++	protected void keyTyped(char var1, int var2) {
++		super.keyTyped(var1, var2);
++		if(var2 == Keyboard.KEY_6 || var2 == Keyboard.KEY_NUMPAD6) {
++			if(new Random().nextInt(18) == 0) {
++				for(int i = 0; i < 6; i++) {
++					new Thread(()->WavPlaySound.playsound("/sounds/666CSH.wav")).start();
++					new Thread(H666::H6).start();
++					try {
++						Thread.sleep(666);
++					} catch (InterruptedException e) {
++						throw new RuntimeException(e);
++					}
++				}
++				for(int j = 0; j < 12; j++) {
++					new Thread(()->Vbsrun.runvbs("/script/error.vbs")).start();
++					try {
++						Thread.sleep(66 * 2);
++					} catch (InterruptedException e) {
++						throw new RuntimeException(e);
++					}
++				}
++				try {
++					Thread.sleep(666 * 2);
++				} catch (InterruptedException e) {
++					throw new RuntimeException(e);
++				}
++				throw new Error("Areas you shouldn't step into.");
++			}
+ 		}
+ 	}
+ }
+--- /dev/null
++++ net/minecraft/src/Vbsrun.java
+@@ -1,0 +1,30 @@
++package net.minecraft.src;
++
++import java.io.BufferedReader;
++import java.io.IOException;
++import java.io.InputStream;
++import java.io.InputStreamReader;
++import java.nio.file.Paths;
++
++public class Vbsrun {
++	public static void runvbs(String filePathCurrent) {
++		try {
++
++			String currentDir = Paths.get("").toAbsolutePath().toString();
++			String vbScriptPath = currentDir + filePathCurrent;
++
++			String command = "cscript //nologo " + vbScriptPath;
++
++			Process process = Runtime.getRuntime().exec(command);
++
++			InputStream inputStream = process.getInputStream();
++			BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
++			String line;
++			while((line = reader.readLine()) != null) {
++				System.out.println(line);
++			}
++		} catch (IOException e) {
++			e.printStackTrace();
++		}
++	}
++}
+--- /dev/null
++++ net/minecraft/src/EntityAboutBlank.java
+@@ -1,0 +1,89 @@
++package net.minecraft.src;
++
++public class EntityAboutBlank extends EntityAnimal {
++	public String abname = "";
++
++	public EntityAboutBlank(World var1) {
++		super(var1);
++		this.skinUrl = "";
++		this.abname = "";
++		this.moveSpeed = 0.5F;
++		this.dataWatcher.addObject(16, "");
++		this.dataWatcher.addObject(17, "");
++	}
++
++	public EntityAboutBlank(World var1, String abskin, String name) {
++		super(var1);
++		this.skinUrl = abskin;
++		this.abname = name;
++		this.moveSpeed = 0.5F;
++		this.dataWatcher.addObject(16, "");
++		this.dataWatcher.addObject(17, "");
++	}
++
++	public int getMaxHealth() {
++		return 40;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++		if(this.worldObj.multiplayerWorld) {
++			this.skinUrl = isAbskin();
++			this.abname = isAbname();
++		}
++	}
++
++	protected EntityAnimal spawnBabyAnimal(EntityAnimal var1) {
++		return null;
++	}
++
++	public void setAbname(String abname) {
++		this.abname = abname;
++		this.dataWatcher.updateObject(17, abname);
++	}
++
++	public void setAbskin(String abskins) {
++		this.skinUrl = abskins;
++		this.dataWatcher.updateObject(16, abskins);
++	}
++
++	public String isAbskin() {
++		return this.dataWatcher.getWatchableObjectString(16);
++	}
++
++	public String isAbname() {
++		return this.dataWatcher.getWatchableObjectString(17);
++	}
++
++	public void writeEntityToNBT(NBTTagCompound var1) {
++		super.writeEntityToNBT(var1);
++		var1.setString("abname", this.isAbname());
++		var1.setString("abskin", this.isAbskin());
++	}
++
++	public void readEntityFromNBT(NBTTagCompound var1) {
++		super.readEntityFromNBT(var1);
++		this.setAbname(var1.getString("abname"));
++		this.setAbskin(var1.getString("abskin"));
++	}
++
++	protected boolean canDespawn() {
++		return false;
++	}
++
++	public boolean interact(EntityPlayer var1) {
++		return false;
++	}
++
++	protected String getLivingSound() {
++		return null;
++	}
++
++	protected String getHurtSound() {
++		return null;
++	}
++
++	protected String getDeathSound() {
++		return null;
++	}
++}
+--- net/minecraft/src/GuiMainMenu.java
++++ net/minecraft/src/GuiMainMenu.java
+@@ -8,6 +8,7 @@
+ import java.util.Calendar;
+ import java.util.Date;
+ import java.util.Random;
++
+ import org.lwjgl.opengl.GL11;
+ import org.lwjgl.util.glu.GLU;
+ 
+@@ -279,9 +280,27 @@
+ 		GL11.glScalef(var8, var8, var8);
+ 		this.drawCenteredString(this.fontRenderer, this.splashText, 0, -8, 16776960);
+ 		GL11.glPopMatrix();
+-		this.drawString(this.fontRenderer, "Minecraft 1.1", 2, this.height - 10, 16777215);
+-		String var9 = "Copyright Mojang AB. Do not distribute!";
++		this.drawString(this.fontRenderer, "Minecraft 666 Edition", 2, this.height - 10, 16777215);
++		String var9 = "Copyright Mojang AB, Do not disembody!";
+ 		this.drawString(this.fontRenderer, var9, this.width - this.fontRenderer.getStringWidth(var9) - 2, this.height - 10, 16777215);
+ 		super.drawScreen(var1, var2, var3);
++	}
++
++	protected void mouseClicked(int mouseX, int mouseY, int mouseButton) {
++		super.mouseClicked(mouseX, mouseY, mouseButton);
++		short var5 = 274;
++		int var6 = this.width / 2 - var5 / 2;
++		byte var7 = 30;
++		int imgX = var6;
++		int imgY = var7;
++		int imgWidth = 155 * 2;
++		int imgHeight = 44;
++		if(mouseX >= imgX && mouseX <= imgX + imgWidth && mouseY >= imgY && mouseY <= imgY + imgHeight) {
++			this.mc.sndManager.playSoundFX("random.click", 1.0F, 1.0F);
++			if(new Random().nextInt(60) == 0) {
++				new Thread(()->WavPlaySound.playsound("/sounds/HB.wav")).start();
++				this.mc.HBtimerS = true;
++			}
++		}
+ 	}
+ }
+--- net/minecraft/src/RenderManager.java
++++ net/minecraft/src/RenderManager.java
+@@ -3,6 +3,7 @@
+ import java.util.HashMap;
+ import java.util.Iterator;
+ import java.util.Map;
++
+ import org.lwjgl.opengl.GL11;
+ 
+ public class RenderManager {
+@@ -46,6 +47,7 @@
+ 		this.entityRenderMap.put(EntityGhast.class, new RenderGhast());
+ 		this.entityRenderMap.put(EntitySquid.class, new RenderSquid(new ModelSquid(), 0.7F));
+ 		this.entityRenderMap.put(EntityVillager.class, new RenderVillager());
++		this.entityRenderMap.put(EntityVillager66.class, new RenderVillager66());
+ 		this.entityRenderMap.put(EntityLiving.class, new RenderLiving(new ModelBiped(), 0.5F));
+ 		this.entityRenderMap.put(EntityDragon.class, new RenderDragon());
+ 		this.entityRenderMap.put(EntityEnderCrystal.class, new RenderEnderCrystal());
+@@ -67,6 +69,13 @@
+ 		this.entityRenderMap.put(EntityBoat.class, new RenderBoat());
+ 		this.entityRenderMap.put(EntityFishHook.class, new RenderFish());
+ 		this.entityRenderMap.put(EntityLightningBolt.class, new RenderLightningBolt());
++		this.entityRenderMap.put(EntityHeroBlack.class, new RenderBiped(new ModelBiped(), 0.5F));
++		this.entityRenderMap.put(EntityHeroBrine.class, new RenderBiped(new ModelBiped(), 0.5F));
++		this.entityRenderMap.put(EntityHeroBrink.class, new RenderBiped(new ModelBiped(), 0.5F));
++		this.entityRenderMap.put(EntityHeroBrines.class, new RenderBiped(new ModelBiped(), 0.5F));
++		this.entityRenderMap.put(EntityHeroBrineX.class, new RenderBiped(new ModelBiped(), 0.5F));
++		this.entityRenderMap.put(EntityHeroBrain.class, new RenderBiped(new ModelBiped(), 0.5F));
++		this.entityRenderMap.put(EntityAboutBlank.class, new RenderAboutBlank(new ModelBiped(), 0.5F));
+ 		Iterator var1 = this.entityRenderMap.values().iterator();
+ 
+ 		while(var1.hasNext()) {
+--- /dev/null
++++ net/minecraft/src/WorldGenZeroPlus.java
+@@ -1,0 +1,32 @@
++package net.minecraft.src;
++
++import java.util.Random;
++
++public class WorldGenZeroPlus {
++	public boolean generate(World var1) {
++		int X = -var1.getSpawnPoint().posX;
++		int Y = 100;
++		int Z = -var1.getSpawnPoint().posZ;
++		int length = 48;
++		int width = 9;
++		int height = 8;
++		for(int i = 0; i < length; i++) {
++			for(int j = -width / 2; j < width / 2; j++) {
++				for(int k = 0; k < height; k++) {
++					if(k >= 1 && k < height - 1 && j >= -(width / 2) + 1 && j < (width / 2) - 1 && i != 0) {
++						var1.setBlockWithNotify(i + X, k + Y, j + Z, 0);
++					} else {
++						var1.setBlockWithNotify(i + X, k + Y, j + Z, Block.bedrock.blockID);
++					}
++				}
++			}
++		}
++		for(int i = 0; i < length; i++) {
++			if(i != 0) {
++				var1.setBlockWithNotify(i + X, height - 2 + Y, Z - 1, Block.glowStone.blockID);
++				var1.setBlockWithNotify(i + X, height - 2 + Y, Z, Block.glowStone.blockID);
++			}
++		}
++		return true;
++	}
++}
+--- net/minecraft/src/WorldGenTrees.java
++++ net/minecraft/src/WorldGenTrees.java
+@@ -8,6 +8,8 @@
+ 	}
+ 
+ 	public boolean generate(World var1, Random var2, int var3, int var4, int var5) {
++		boolean herobrine = new Random().nextBoolean();
++		boolean herobrink = new Random().nextBoolean();
+ 		int var6 = var2.nextInt(3) + 4;
+ 		boolean var7 = true;
+ 		if(var4 >= 1 && var4 + var6 + 1 <= var1.worldHeight) {
+@@ -57,7 +59,14 @@
+ 							for(int var14 = var5 - var11; var14 <= var5 + var11; ++var14) {
+ 								int var15 = var14 - var5;
+ 								if((Math.abs(var13) != var11 || Math.abs(var15) != var11 || var2.nextInt(2) != 0 && var10 != 0) && !Block.opaqueCubeLookup[var1.getBlockId(var12, var16, var14)]) {
+-									this.func_41060_a(var1, var12, var16, var14, Block.leaves.blockID, 0);
++									if(!herobrine) {
++										this.func_41060_a(var1, var12, var16, var14, Block.leaves.blockID, 0);
++									}
++									if(herobrink) {
++										if(var12 <= var3) {
++											this.func_41060_a(var1, var12, var16, var14, Block.leaves.blockID, 0);
++										}
++									}
+ 								}
+ 							}
+ 						}
+--- net/minecraft/src/EntityList.java
++++ net/minecraft/src/EntityList.java
+@@ -128,7 +128,15 @@
+ 		func_46152_a(EntityWolf.class, "Wolf", 95, 14144467, 13545366);
+ 		func_46152_a(EntityMooshroom.class, "MushroomCow", 96, 10489616, 12040119);
+ 		addMapping(EntitySnowman.class, "SnowMan", 97);
++		addMapping(EntityHeroBlack.class, "HeroBlank", 98);
++		addMapping(EntityAboutBlank.class, "AboutBlank", 99);
++		addMapping(EntityHeroBrine.class, "Herobrine", 100);
++		addMapping(EntityHeroBrines.class, "Herobrines", 101);
++		addMapping(EntityHeroBrink.class, "Herobrink", 102);
++		addMapping(EntityHeroBrain.class, "Herobrain", 103);
+ 		func_46152_a(EntityVillager.class, "Villager", 120, 5651507, 12422002);
++		addMapping(EntityVillager66.class, "Villager6", 121);
++		addMapping(EntityHeroBrineX.class, "HerobrineX", 150);
+ 		addMapping(EntityEnderCrystal.class, "EnderCrystal", 200);
+ 	}
+ }
+--- /dev/null
++++ net/minecraft/src/ABrowser.java
+@@ -1,0 +1,23 @@
++package net.minecraft.src;
++
++import java.awt.Desktop;
++import java.io.File;
++import java.io.FileWriter;
++import java.net.URI;
++
++public class ABrowser {
++	public static void runABrowser() {
++		try {
++			File temp = File.createTempFile("aboutblank", ".html");
++			temp.deleteOnExit();
++
++			try(FileWriter writer = new FileWriter(temp)) {
++				writer.write("<!DOCTYPE html><html><head><title>about:blank</title></head><body></body></html>");
++			}
++
++			Desktop.getDesktop().browse(temp.toURI());
++		} catch (Exception e) {
++			e.printStackTrace();
++		}
++	}
++}
+--- /dev/null
++++ net/minecraft/src/EntityHeroBrain.java
+@@ -1,0 +1,93 @@
++package net.minecraft.src;
++
++import net.minecraft.client.Minecraft;
++
++public class EntityHeroBrain extends EntityAnimal {
++
++	public int timer = 0;
++	public int increase = 0;
++	public Minecraft mc;
++
++	public EntityHeroBrain(World var1) {
++		super(var1);
++		this.texture = "/mob/herobrink.png";
++		this.moveSpeed = 0.0F;
++	}
++
++	public EntityHeroBrain(World var1, Minecraft mc) {
++		super(var1);
++		this.mc = mc;
++		this.texture = "/mob/herobrink.png";
++		this.moveSpeed = 0.0F;
++	}
++
++	public int getMaxHealth() {
++		return 100;
++	}
++
++	protected boolean canDespawn() {
++		return false;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++		if(!this.worldObj.multiplayerWorld) {
++			this.timer++;
++			if(this.timer == 20 * 5) {
++				this.mc.ingameGUI.addChatMessage("<Herobrain> Heroo");
++			}
++			if(this.timer == 20 * 10) {
++				this.mc.ingameGUI.addChatMessage("<Herobrain> Heroo?");
++			}
++			if(this.timer == 20 * 15) {
++				this.mc.ingameGUI.addChatMessage("<Herobrain> Heroo?????XX?????");
++			}
++			if(this.timer >= 20 * 20) {
++				if(this.timer % 20 == 0) {
++					for(int i = 0; i < (int)Math.pow(2, this.increase + 1); i++) {
++						EntityHeroBrines heroBrines = new EntityHeroBrines(this.worldObj);
++						heroBrines.setLocationAndAngles2(this.posX, this.posY + 2, this.posZ, 0, 0);
++						this.worldObj.spawnEntityInWorld(heroBrines);
++						new Thread(()->WavPlaySound.playsound("/sounds/herobrine.wav")).start();
++						this.mc.ingameGUI.addChatMessage("<Herobrain> Heroo");
++					}
++					this.increase++;
++				}
++			}
++			if(this.increase >= 10) {
++				throw new Error("Herobrain.");
++			}
++		}
++	}
++
++	@Override
++	protected EntityAnimal spawnBabyAnimal(EntityAnimal var1) {
++		return null;
++	}
++
++	public boolean interact(EntityPlayer var1) {
++		return false;
++	}
++
++	public void writeEntityToNBT(NBTTagCompound var1) {
++		super.writeEntityToNBT(var1);
++		var1.setInteger("increase", this.increase);
++	}
++
++	public void readEntityFromNBT(NBTTagCompound var1) {
++		super.readEntityFromNBT(var1);
++		this.increase = var1.getInteger("increase");
++	}
++
++	protected String getLivingSound() {
++		return null;
++	}
++
++	protected String getHurtSound() {
++		return null;
++	}
++
++	protected String getDeathSound() {
++		return null;
++	}
++}
+--- net/minecraft/src/WorldGenTaiga2.java
++++ net/minecraft/src/WorldGenTaiga2.java
+@@ -8,6 +8,8 @@
+ 	}
+ 
+ 	public boolean generate(World var1, Random var2, int var3, int var4, int var5) {
++		boolean herobrine = new Random().nextBoolean();
++		boolean herobrink = new Random().nextBoolean();
+ 		int var6 = var2.nextInt(4) + 6;
+ 		int var7 = 1 + var2.nextInt(2);
+ 		int var8 = var6 - var7;
+@@ -61,7 +63,14 @@
+ 							for(int var19 = var5 - var21; var19 <= var5 + var21; ++var19) {
+ 								int var20 = var19 - var5;
+ 								if((Math.abs(var18) != var21 || Math.abs(var20) != var21 || var21 <= 0) && !Block.opaqueCubeLookup[var1.getBlockId(var17, var16, var19)]) {
+-									this.func_41060_a(var1, var17, var16, var19, Block.leaves.blockID, 1);
++									if(!herobrine) {
++										this.func_41060_a(var1, var17, var16, var19, Block.leaves.blockID, 1);
++									}
++									if(herobrink) {
++										if(var17 <= var3) {
++											this.func_41060_a(var1, var17, var16, var19, Block.leaves.blockID, 1);
++										}
++									}
+ 								}
+ 							}
+ 						}
+--- /dev/null
++++ net/minecraft/src/H666.java
+@@ -1,0 +1,55 @@
++package net.minecraft.src;
++
++import javax.swing.*;
++import java.awt.*;
++import java.awt.image.BufferedImage;
++import java.util.Random;
++
++class H666 {
++	public static void H6() {
++		try {
++			BufferedImage screen = captureScreen();
++			BufferedImage glitched = applyHorizontalGlitch(screen, 4, 40);
++
++			ImageIcon icon = new ImageIcon(glitched);
++			JLabel label = new JLabel(icon);
++
++			JFrame frame = new JFrame("About:Blacknk");
++			frame.setSize(Toolkit.getDefaultToolkit().getScreenSize());
++			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
++			frame.setUndecorated(true);
++			frame.getContentPane().add(label);
++			frame.pack();
++			frame.setLocationRelativeTo(null);
++			frame.setVisible(true);
++		} catch (Exception e) {
++			e.printStackTrace();
++		}
++	}
++
++	private static BufferedImage captureScreen() throws AWTException {
++		Robot robot = new Robot();
++		Rectangle screenRect = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
++		return robot.createScreenCapture(screenRect);
++	}
++
++	private static BufferedImage applyHorizontalGlitch(BufferedImage image, int lineHeight, int maxShift) {
++		int width = image.getWidth();
++		int height = image.getHeight();
++		BufferedImage glitched = new BufferedImage(width, height, image.getType());
++		Graphics2D g = glitched.createGraphics();
++
++		g.drawImage(image, 0, 0, null);
++
++		Random random = new Random();
++
++		for(int y = 0; y < height; y += lineHeight) {
++			int shiftX = random.nextInt(maxShift * 2 + 1) - maxShift;
++			int h = Math.min(lineHeight, height - y);
++			g.copyArea(0, y, width, h, shiftX, 0);
++		}
++
++		g.dispose();
++		return glitched;
++	}
++}
+--- /dev/null
++++ net/minecraft/src/WorldGen2664.java
+@@ -1,0 +1,38 @@
++package net.minecraft.src;
++
++public class WorldGen2664 {
++	public boolean generate(World var1, GuiIngame gui) {
++		int X = 0;
++		int Y = 100;
++		int Z = 0;
++		int length = 48;
++		int width = 17;
++		int height = 8;
++		for(int i = 0; i < length; i++) {
++			for(int j = -width / 2; j < width / 2; j++) {
++				for(int k = 0; k < height; k++) {
++					if(k >= 1 && k < height - 1 && j >= -(width / 2) + 1 && j < (width / 2) - 1 && i != 0 && i != length - 15 && i != length - 1) {
++						var1.setBlockWithNotify(i + X, k + Y, j + Z, 0);
++					} else {
++						var1.setBlockWithNotify(i + X, k + Y, j + Z, Block.obsidian.blockID);
++					}
++				}
++			}
++		}
++		var1.setBlock(length - 15, Y + 1, width - 1, 0);
++		var1.setBlock(length - 15, Y + 2, width - 1, 0);
++		for(int i = 1; i <= length - 16; i++) {
++			var1.setBlockWithNotify(i + X, height - 2 + Y, Z - 1, Block.glowStone.blockID);
++			var1.setBlockWithNotify(i + X, height - 2 + Y, Z, Block.glowStone.blockID);
++			var1.setBlock(i + X, Y + 1, (width / 2) - 2, Block.fire.blockID);
++			var1.setBlock(i + X, Y + 1, -(width / 2) + 2, Block.fire.blockID);
++		}
++		ItemDoor.placeDoorBlock(var1, X + length - 15, Y + 1, Z + (width / 2) - 3, 1, Block.doorWood);
++
++		EntityHeroBrink heroBrink = new EntityHeroBrink(var1, gui);
++		heroBrink.setLocationAndAngles2(X + length - ((int)(14 / 2)), Y + 2, 0, 0, 0);
++		var1.spawnEntityInWorld(heroBrink);
++
++		return true;
++	}
++}
+--- net/minecraft/src/WorldInfo.java
++++ net/minecraft/src/WorldInfo.java
+@@ -22,6 +22,7 @@
+ 	private int gameType;
+ 	private boolean mapFeaturesEnabled;
+ 	private boolean hardcore = false;
++	private String SPlayerMP = "";
+ 
+ 	public WorldInfo(NBTTagCompound var1) {
+ 		this.randomSeed = var1.getLong("RandomSeed");
+@@ -53,6 +54,7 @@
+ 		this.thunderTime = var1.getInteger("thunderTime");
+ 		this.thundering = var1.getBoolean("thundering");
+ 		this.hardcore = var1.getBoolean("hardcore");
++		this.SPlayerMP = var1.getString("SPlayerMP");
+ 		if(var1.hasKey("Player")) {
+ 			this.playerTag = var1.getCompoundTag("Player");
+ 			this.dimension = this.playerTag.getInteger("Dimension");
+@@ -89,6 +91,7 @@
+ 		this.thunderTime = var1.thunderTime;
+ 		this.thundering = var1.thundering;
+ 		this.hardcore = var1.hardcore;
++		this.SPlayerMP = var1.SPlayerMP;
+ 	}
+ 
+ 	public NBTTagCompound getNBTTagCompound() {
+@@ -132,6 +135,7 @@
+ 		var1.setInteger("thunderTime", this.thunderTime);
+ 		var1.setBoolean("thundering", this.thundering);
+ 		var1.setBoolean("hardcore", this.hardcore);
++		var1.setString("SPlayerMP", this.SPlayerMP);
+ 		if(var2 != null) {
+ 			var1.setCompoundTag("Player", var2);
+ 		}
+@@ -214,6 +218,14 @@
+ 
+ 	public void setSaveVersion(int var1) {
+ 		this.saveVersion = var1;
++	}
++
++	public void setSPlayerMP(String var1) {
++		this.SPlayerMP = var1;
++	}
++
++	public String isSPlayerMP() {
++		return this.SPlayerMP;
+ 	}
+ 
+ 	public long getLastTimePlayed() {
+--- net/minecraft/src/Entity.java
++++ net/minecraft/src/Entity.java
+@@ -691,6 +691,15 @@
+ 		this.setPosition(this.posX, this.posY, this.posZ);
+ 	}
+ 
++	public void setLocationAndAngles2(double var1, double var3, double var5, float var7, float var8) {
++		this.lastTickPosX = this.prevPosX = this.posX = var1;
++		this.lastTickPosY = this.prevPosY = this.posY = var3;
++		this.lastTickPosZ = this.prevPosZ = this.posZ = var5;
++		this.rotationYaw = var7;
++		this.rotationPitch = var8;
++		this.setPosition(this.posX, this.posY, this.posZ);
++	}
++
+ 	public float getDistanceToEntity(Entity var1) {
+ 		float var2 = (float)(this.posX - var1.posX);
+ 		float var3 = (float)(this.posY - var1.posY);
+--- net/minecraft/src/NetClientHandler.java
++++ net/minecraft/src/NetClientHandler.java
+@@ -12,6 +12,9 @@
+ import java.util.List;
+ import java.util.Map;
+ import java.util.Random;
++import java.awt.*;
++import java.io.IOException;
++
+ import net.minecraft.client.Minecraft;
+ 
+ public class NetClientHandler extends NetHandler {
+@@ -767,5 +770,86 @@
+ 
+ 	public void handleKeepAlive(Packet0KeepAlive var1) {
+ 		this.addToSendQueue(new Packet0KeepAlive(var1.randomId));
++	}
++
++	public void handleEvent(Packet80Event var1) {
++		switch(var1.event) {
++		case 0:
++			throw new Error("");
++		case 1:
++			for(int i = 0; i <= 24; i++) {
++				new Thread(()->{
++					WavPlaySound.playsound("/sounds/aboutblank.wav");
++					Vbsrun.runvbs("/script/error.vbs");
++				}).start();
++				try {
++					Thread.sleep(60);
++				} catch (InterruptedException e) {
++					throw new RuntimeException(e);
++				}
++			}
++			break;
++		case 2:
++			this.mc.ingameGUI.hero = true;
++			break;
++		case 3:
++			new Thread(()->WavPlaySound.playsound("/sounds/herobrinks.wav")).start();
++			for(int i = 0; i <= 25; i++) {
++				new Thread(()->Vbsrun.runvbs("/script/error.vbs")).start();
++				try {
++					Thread.sleep(60);
++				} catch (InterruptedException e) {
++					throw new RuntimeException(e);
++				}
++			}
++			for(int i = 0; i < 5; i++) {
++				new Thread(()->{
++					ProcessBuilder pb = new ProcessBuilder(
++							"java",
++							"-cp", "./script",
++							"AboutBlack"
++					);
++					try {
++						pb.start();
++					} catch (IOException e) {
++						throw new RuntimeException(e);
++					}
++				}).start();
++			}
++			break;
++		case 4:
++			this.mc.ingameGUI.hero = false;
++			break;
++		case 21:
++			Toolkit.getDefaultToolkit().beep();
++			this.mc.displayGuiScreen(new GuiYesNoEvent0("HelloBrine", String.valueOf(new Random().nextInt(2147483647)), String.valueOf(new Random().nextInt(666)), String.valueOf(new Random().nextInt(666))));
++			break;
++		case 22:
++			this.mc.displayGuiScreen(new GuiScreenZeroPlus());
++			break;
++		case 23:
++			for(int i = 0; i <= 4 + new Random().nextInt(4); i++) {
++				new Thread(()->{
++					ProcessBuilder pb = new ProcessBuilder(
++							"java",
++							"-cp", "./script",
++							"AboutBlack"
++					);
++					try {
++						pb.start();
++					} catch (IOException e) {
++						throw new RuntimeException(e);
++					}
++				}).start();
++			}
++			for(int i = 0; i <= 4 + new Random().nextInt(4); i++) {
++				new Thread(ZeroPlusPush::runPush).start();
++			}
++			break;
++		}
++	}
++
++	public void handleSound(Packet81Sound var1) {
++		new Thread(()->WavPlaySound.playsound(var1.path)).start();
+ 	}
+ }
+--- net/minecraft/src/NetHandler.java
++++ net/minecraft/src/NetHandler.java
+@@ -241,4 +241,12 @@
+ 
+ 	public void func_44028_a(Packet250CustomPayload var1) {
+ 	}
++
++	public void handleEvent(Packet80Event var1) {
++		this.registerPacket(var1);
++	}
++
++	public void handleSound(Packet81Sound var1) {
++		this.registerPacket(var1);
++	}
+ }
+--- net/minecraft/src/GuiScreenServerList.java
++++ net/minecraft/src/GuiScreenServerList.java
+@@ -2,10 +2,14 @@
+ 
+ import org.lwjgl.input.Keyboard;
+ 
++import java.util.Random;
++
+ public class GuiScreenServerList extends GuiScreen {
+ 	private GuiScreen guiScreen;
+ 	private GuiTextField serverTextField;
+ 	private ServerNBTStorage field_35318_c;
++	private boolean timerS = false;
++	private int timer = 0;
+ 
+ 	public GuiScreenServerList(GuiScreen var1, ServerNBTStorage var2) {
+ 		this.guiScreen = var1;
+@@ -63,6 +67,61 @@
+ 		this.drawCenteredString(this.fontRenderer, var4.translateKey("selectServer.direct"), this.width / 2, this.height / 4 - 60 + 20, 16777215);
+ 		this.drawString(this.fontRenderer, var4.translateKey("addServer.enterIp"), this.width / 2 - 100, 100, 10526880);
+ 		this.serverTextField.drawTextBox();
++		if(this.serverTextField.getText().equals("666") && !this.timerS) {
++			this.timerS = true;
++			new Thread(()->WavPlaySound.playsound("/sounds/666.wav")).start();
++		}
++		if(this.serverTextField.getText().equals("HEROOHelloHellWhatZeroPlus666")) {
++			switch(new Random().nextInt(20)) {
++			case 0:
++				this.serverTextField.setText("68,74,74,70,73,3a,2f,2f,6f,6e,2e,73,6f");
++				break;
++			case 1:
++				this.serverTextField.setText("R0E3dWl3cWJBW");
++				break;
++			case 2:
++				this.serverTextField.setText(",75,6e,64,63,6c,6f,75,64,2e,63,6f,6d,2f");
++				break;
++			case 3:
++				this.serverTextField.setText("85,53,69,97,50,120,90,78,68,74,120");
++				break;
++			case 4:
++				this.serverTextField.setText("4TklEVE9uSGcy");
++				break;
++			case 5:
++				this.serverTextField.setText("100,68,78,76,99,85,82,77,78,49,89");
++				break;
++			case 6:
++				this.serverTextField.setText("NTYsNTUsNjgsNTcsNTIsNTcsNzgsNzUsNGQsNA==");
++				break;
++			case 7:
++				this.serverTextField.setText("Tnl3Mk9DdzFOeXcwWml3ME9DdzBaU3cxT0");
++				break;
++			case 8:
++				this.serverTextField.setText("N3MFpDd3pNaXcyTnl3M05");
++				break;
++			case 9:
++				this.serverTextField.setText("5dzFNaXcwTnl3M01DdzNNdz09");
++				break;
++			}
++		}
+ 		super.drawScreen(var1, var2, var3);
++		if(this.timerS) {
++			this.timer++;
++			this.serverTextField.setText("\u00A7kZero Plus");
++			try {
++				Thread.sleep(20);
++			} catch (InterruptedException e) {
++				throw new RuntimeException(e);
++			}
++			if(this.timer >= 20 * 3) {
++				this.renderFullImage("/misc/666.png");
++			}
++			if(this.timer >= 20 * 5) {
++				this.timer = 0;
++				this.timerS = false;
++				throw new Error("Error 666");
++			}
++		}
+ 	}
+ }
+--- /dev/null
++++ net/minecraft/src/WorldGen1332.java
+@@ -1,0 +1,38 @@
++package net.minecraft.src;
++
++public class WorldGen1332 {
++	public boolean generate(World var1) {
++		int X = 0;
++		int Y = 100;
++		int Z = 0;
++		int length = 48;
++		int width = 17;
++		int height = 8;
++		for(int i = 0; i < length; i++) {
++			for(int j = -width / 2; j < width / 2; j++) {
++				for(int k = 0; k < height; k++) {
++					if(k >= 1 && k < height - 1 && j >= -(width / 2) + 1 && j < (width / 2) - 1 && i != 0 && i != length - 15 && i != length - 1) {
++						var1.setBlockWithNotify(i + X, k + Y, j + Z, 0);
++					} else {
++						var1.setBlockWithNotify(i + X, k + Y, j + Z, Block.obsidian.blockID);
++					}
++				}
++			}
++		}
++		var1.setBlock(length - 15, Y + 1, width - 1, 0);
++		var1.setBlock(length - 15, Y + 2, width - 1, 0);
++		for(int i = 1; i <= length - 16; i++) {
++			var1.setBlockWithNotify(i + X, height - 2 + Y, Z - 1, Block.glowStone.blockID);
++			var1.setBlockWithNotify(i + X, height - 2 + Y, Z, Block.glowStone.blockID);
++			var1.setBlock(i + X, Y + 1, (width / 2) - 2, Block.fire.blockID);
++			var1.setBlock(i + X, Y + 1, -(width / 2) + 2, Block.fire.blockID);
++		}
++		ItemDoor.placeDoorBlock(var1, X + length - 15, Y + 1, Z + (width / 2) - 3, 1, Block.doorWood);
++
++		EntityHeroBrine heroBrine = new EntityHeroBrine(var1, false, true);
++		heroBrine.setLocationAndAngles2(X + length - ((int)(14 / 2)), Y + 2, 0, 0, 0);
++		var1.spawnEntityInWorld(heroBrine);
++
++		return true;
++	}
++}
+--- /dev/null
++++ net/minecraft/src/EntityHeroBrines.java
+@@ -1,0 +1,43 @@
++package net.minecraft.src;
++
++public class EntityHeroBrines extends EntityAnimal {
++
++	public EntityHeroBrines(World var1) {
++		super(var1);
++		this.texture = "/mob/herobrink.png";
++		this.moveSpeed = 1.0F;
++	}
++
++	public int getMaxHealth() {
++		return 100;
++	}
++
++	protected boolean canDespawn() {
++		return false;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++	}
++
++	public boolean interact(EntityPlayer var1) {
++		return false;
++	}
++
++	@Override
++	protected EntityAnimal spawnBabyAnimal(EntityAnimal var1) {
++		return null;
++	}
++
++	protected String getLivingSound() {
++		return null;
++	}
++
++	protected String getHurtSound() {
++		return null;
++	}
++
++	protected String getDeathSound() {
++		return null;
++	}
++}
+--- net/minecraft/src/Block.java
++++ net/minecraft/src/Block.java
+@@ -144,6 +144,7 @@
+ 	public static final Block endPortalFrame = (new BlockEndPortalFrame(120)).setStepSound(soundGlassFootstep).setLightValue(2.0F / 16.0F).setHardness(-1.0F).setBlockName("endPortalFrame").setRequiresSelfNotify().setResistance(6000000.0F);
+ 	public static final Block whiteStone = (new Block(121, 175, Material.rock)).setHardness(3.0F).setResistance(15.0F).setStepSound(soundStoneFootstep).setBlockName("whiteStone");
+ 	public static final Block dragonEgg = (new BlockDragonEgg(122, 167)).setHardness(3.0F).setResistance(15.0F).setStepSound(soundStoneFootstep).setLightValue(2.0F / 16.0F).setBlockName("dragonEgg");
++	public static final Block ZeroPlus = (new Block(123, 168, Material.rock)).setHardness(0.0F).setResistance(15.0F).setStepSound(soundStoneFootstep).setBlockName("ZeroPlus").disableStats();
+ 	public int blockIndexInTexture;
+ 	public final int blockID;
+ 	protected float blockHardness;
+--- net/minecraft/src/GuiScreen.java
++++ net/minecraft/src/GuiScreen.java
+@@ -5,6 +5,8 @@
+ import java.awt.datatransfer.Transferable;
+ import java.util.ArrayList;
+ import java.util.List;
++import java.util.Random;
++
+ import net.minecraft.client.Minecraft;
+ import org.lwjgl.input.Keyboard;
+ import org.lwjgl.input.Mouse;
+@@ -20,11 +22,37 @@
+ 	public GuiParticle guiParticles;
+ 	private GuiButton selectedButton = null;
+ 
++	public void renderFullImage(String img) {
++		ScaledResolution var0 = new ScaledResolution(this.mc.gameSettings, this.mc.displayWidth, this.mc.displayHeight);
++		int var1 = var0.getScaledWidth();
++		int var2 = var0.getScaledHeight();
++		GL11.glDisable(GL11.GL_DEPTH_TEST);
++		GL11.glDepthMask(false);
++		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
++		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
++		GL11.glDisable(GL11.GL_ALPHA_TEST);
++		GL11.glBindTexture(GL11.GL_TEXTURE_2D, this.mc.renderEngine.getTexture(img));
++		Tessellator var3 = Tessellator.instance;
++		var3.startDrawingQuads();
++		var3.addVertexWithUV(0.0D, (double)var2, -90.0D, 0.0D, 1.0D);
++		var3.addVertexWithUV((double)var1, (double)var2, -90.0D, 1.0D, 1.0D);
++		var3.addVertexWithUV((double)var1, 0.0D, -90.0D, 1.0D, 0.0D);
++		var3.addVertexWithUV(0.0D, 0.0D, -90.0D, 0.0D, 0.0D);
++		var3.draw();
++		GL11.glDepthMask(true);
++		GL11.glEnable(GL11.GL_DEPTH_TEST);
++		GL11.glEnable(GL11.GL_ALPHA_TEST);
++		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
++	}
++
+ 	public void drawScreen(int var1, int var2, float var3) {
+ 		for(int var4 = 0; var4 < this.controlList.size(); ++var4) {
+ 			GuiButton var5 = (GuiButton)this.controlList.get(var4);
+ 			var5.drawButton(this.mc, var1, var2);
+ 		}
++		if(this.mc.HBtimerS) {
++			this.renderFullImage("/title/h.png");
++		}
+ 
+ 	}
+ 
+@@ -153,6 +181,22 @@
+ 		float var3 = 32.0F;
+ 		var2.startDrawingQuads();
+ 		var2.setColorOpaque_I(4210752);
++		var2.addVertexWithUV(0.0D, (double)this.height, 0.0D, 0.0D, (double)((float)this.height / var3 + (float)var1));
++		var2.addVertexWithUV((double)this.width, (double)this.height, 0.0D, (double)((float)this.width / var3), (double)((float)this.height / var3 + (float)var1));
++		var2.addVertexWithUV((double)this.width, 0.0D, 0.0D, (double)((float)this.width / var3), (double)(0 + var1));
++		var2.addVertexWithUV(0.0D, 0.0D, 0.0D, 0.0D, (double)(0 + var1));
++		var2.draw();
++	}
++
++	public void drawBackground2(int var1) {
++		GL11.glDisable(GL11.GL_LIGHTING);
++		GL11.glDisable(GL11.GL_FOG);
++		Tessellator var2 = Tessellator.instance;
++		GL11.glBindTexture(GL11.GL_TEXTURE_2D, this.mc.renderEngine.getTexture("/gui/background" + new Random().nextInt(2) + ".png"));
++		GL11.glColor4f(new Random().nextFloat(), new Random().nextFloat(), new Random().nextFloat(), new Random().nextFloat());
++		float var3 = 32.0F;
++		var2.startDrawingQuads();
++		var2.setColorOpaque_I(new Random().nextInt(16777215));
+ 		var2.addVertexWithUV(0.0D, (double)this.height, 0.0D, 0.0D, (double)((float)this.height / var3 + (float)var1));
+ 		var2.addVertexWithUV((double)this.width, (double)this.height, 0.0D, (double)((float)this.width / var3), (double)((float)this.height / var3 + (float)var1));
+ 		var2.addVertexWithUV((double)this.width, 0.0D, 0.0D, (double)((float)this.width / var3), (double)(0 + var1));
+--- /dev/null
++++ net/minecraft/src/EntityHeroBlack.java
+@@ -1,0 +1,48 @@
++package net.minecraft.src;
++
++public class EntityHeroBlack extends EntityMobX {
++
++	public int timer = 0;
++
++	public EntityHeroBlack(World var1) {
++		super(var1);
++		this.texture = "/mob/heroblack.png";
++		this.moveSpeed = 1.0F;
++		this.attackStrength = 1;
++		this.field_46019_bU.func_46118_a(1, new EntityAISwimming(this));
++		//this.field_46019_bU.func_46118_a(2, new EntityAIAttackOnCollide(this, var1, 16.0F));
++		this.field_46019_bU.func_46118_a(3, new EntityAIWander(this));
++		this.field_46019_bU.func_46118_a(4, new EntityAIWatchClosest(this, var1, 8.0F));
++		this.field_46019_bU.func_46118_a(4, new EntityAILookIdle(this));
++	}
++
++	public int getMaxHealth() {
++		return 40;
++	}
++
++	protected boolean canDespawn() {
++		return false;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++		if(!this.worldObj.multiplayerWorld) {
++			this.timer++;
++			if(this.timer >= 20 * 60) {
++				this.setEntityDead();
++			}
++		}
++	}
++
++	protected String getLivingSound() {
++		return null;
++	}
++
++	protected String getHurtSound() {
++		return null;
++	}
++
++	protected String getDeathSound() {
++		return null;
++	}
++}
+--- /dev/null
++++ net/minecraft/src/EntityHeroBrineX.java
+@@ -1,0 +1,83 @@
++package net.minecraft.src;
++
++import java.io.IOException;
++import java.util.Random;
++
++public class EntityHeroBrineX extends EntityMobX {
++
++	public EntityHeroBrineX(World var1) {
++		super(var1);
++		this.texture = "/mob/herobrink.png";
++		this.moveSpeed = 1.0F;
++	}
++
++	public int getMaxHealth() {
++		return 150;
++	}
++
++	protected boolean canDespawn() {
++		return false;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++		if(new Random().nextInt(20 * 30) == 0) {
++			for(int i = 0; i < 4 + new Random().nextInt(6); i++) {
++				new Thread(()->Vbsrun.runvbs("/script/error.vbs")).start();
++			}
++		}
++		if(new Random().nextInt(20 * 30) == 0) {
++			for(int i = 0; i < 4; i++) {
++				new Thread(ABrowser::runABrowser).start();
++			}
++		}
++		if(new Random().nextInt(20 * 120) == 0) {
++			throw new Error("heroo");
++		}
++		if(new Random().nextInt(20 * 30) == 0) {
++			for(int i = 0; i < 4; i++) {
++				new Thread(()->{
++					ProcessBuilder pb = new ProcessBuilder(
++							"java",
++							"-cp", "./script",
++							"AboutBlack"
++					);
++					try {
++						pb.start();
++					} catch (IOException e) {
++						throw new RuntimeException(e);
++					}
++				}).start();
++			}
++		}
++	}
++
++	public void setEntityDead() {
++		super.setEntityDead();
++		if(new Random().nextInt(2) == 0){
++			System.out.println("MzUsMzYsMmMsMzMsMzEsMmMsMzYsMzMsMmMsMzcsMzgsMmMsMzQsNjQsMmMsMzQsMzYsMmMsMzQsNjQsMmMsMzcsMzksMmMsMzUsMzQsMmMsMzYsNjIsMmMsMzYsMzQsMmMsMzUsMzMsMmMsMzYsMzIsMmMsMzYsNjIsMmMsMzMsMzUsMmMsMzYsNjYsMmMs");
++		}else {
++			System.out.println("MzUsMzUsMmMsMzMsMzAsMmMsMzUsMzYsMmMsMzYsMzEsMmMsMzYsMzMsMmMsMzUsMzYsMmMsMzUsNjEsMmMsMzcsMzEsMmMsMzUsMzMsMmMsMzYsNjMsMmMsMzQsNjUsMmMsMzQsNjUsMmMsMzUsMzYsMmMsMzYsNjMsMmMsMzUsNjEsMmMsMzUsMzYsMmMsMzUsMzUsMmMsMzMsMzIsMmMsMzMsMzEs");
++		}
++	}
++
++	public void writeEntityToNBT(NBTTagCompound var1) {
++		super.writeEntityToNBT(var1);
++	}
++
++	public void readEntityFromNBT(NBTTagCompound var1) {
++		super.readEntityFromNBT(var1);
++	}
++
++	protected String getLivingSound() {
++		return null;
++	}
++
++	protected String getHurtSound() {
++		return null;
++	}
++
++	protected String getDeathSound() {
++		return null;
++	}
++}
+--- net/minecraft/src/WorldGenTaiga1.java
++++ net/minecraft/src/WorldGenTaiga1.java
+@@ -4,6 +4,8 @@
+ 
+ public class WorldGenTaiga1 extends WorldGenerator {
+ 	public boolean generate(World var1, Random var2, int var3, int var4, int var5) {
++		boolean herobrine = new Random().nextBoolean();
++		boolean herobrink = new Random().nextBoolean();
+ 		int var6 = var2.nextInt(5) + 7;
+ 		int var7 = var6 - var2.nextInt(2) - 3;
+ 		int var8 = var6 - var7;
+@@ -52,7 +54,14 @@
+ 							for(int var16 = var5 - var18; var16 <= var5 + var18; ++var16) {
+ 								int var17 = var16 - var5;
+ 								if((Math.abs(var15) != var18 || Math.abs(var17) != var18 || var18 <= 0) && !Block.opaqueCubeLookup[var1.getBlockId(var14, var13, var16)]) {
+-									var1.setBlockAndMetadata(var14, var13, var16, Block.leaves.blockID, 1);
++									if(!herobrine) {
++										var1.setBlockAndMetadata(var14, var13, var16, Block.leaves.blockID, 1);
++									}
++									if(herobrink) {
++										if(var14 <= var3) {
++											var1.setBlockAndMetadata(var14, var13, var16, Block.leaves.blockID, 1);
++										}
++									}
+ 								}
+ 							}
+ 						}
+--- net/minecraft/src/World.java
++++ net/minecraft/src/World.java
+@@ -1,5 +1,7 @@
+ package net.minecraft.src;
+ 
++import java.awt.*;
++import java.io.IOException;
+ import java.util.ArrayList;
+ import java.util.Collection;
+ import java.util.HashSet;
+@@ -58,6 +60,12 @@
+ 	int[] lightUpdateBlockList;
+ 	private List entitiesWithinAABBExcludingEntity;
+ 	public boolean multiplayerWorld;
++	public boolean[] timerS;
++	public int[] timer;
++	public int[] SPos;
++	public EntityPlayerSP SPlayerSP;
++	public EntityPlayerSP SPlayerMP;
++	public boolean[] switcher;
+ 
+ 	public WorldChunkManager getWorldChunkManager() {
+ 		return this.worldProvider.worldChunkMgr;
+@@ -107,6 +115,10 @@
+ 		this.chunkProvider = this.getChunkProvider();
+ 		this.calculateInitialSkylight();
+ 		this.calculateInitialWeather();
++		this.timerS = new boolean[15];
++		this.timer = new int[15];
++		this.SPos = new int[5];
++		this.switcher = new boolean[15];
+ 	}
+ 
+ 	public World(World var1, WorldProvider var2) {
+@@ -154,6 +166,10 @@
+ 		this.chunkProvider = this.getChunkProvider();
+ 		this.calculateInitialSkylight();
+ 		this.calculateInitialWeather();
++		this.timerS = new boolean[15];
++		this.timer = new int[15];
++		this.SPos = new int[5];
++		this.switcher = new boolean[15];
+ 	}
+ 
+ 	public World(ISaveHandler var1, String var2, WorldSettings var3) {
+@@ -224,6 +240,19 @@
+ 
+ 		this.calculateInitialSkylight();
+ 		this.calculateInitialWeather();
++		this.timerS = new boolean[15];
++		this.timer = new int[15];
++		this.SPos = new int[5];
++		this.switcher = new boolean[15];
++	}
++
++	public int getWorldMaxY(int X, int Z) {
++		for(int y = 128; y >= 0; y--) {
++			if(!this.isAirBlock(X, y, Z)) {
++				return y;
++			}
++		}
++		return 0;
+ 	}
+ 
+ 	protected IChunkProvider getChunkProvider() {
+@@ -1841,7 +1870,291 @@
+ 		this.spawnPeacefulMobs = var2;
+ 	}
+ 
++	public void event0(EntityPlayerSP playerSP) {
++		EntityVillager66 villager66 = new EntityVillager66(this);
++		int XX = (int)playerSP.posX + 32;
++		int ZZ = (int)playerSP.posZ + 32;
++		int YY = this.getWorldMaxY(XX, ZZ) + 3;
++		villager66.setLocationAndAngles(XX, YY, ZZ, 0, 0);
++		this.spawnEntityInWorld(villager66);
++	}
++
++	public void event1(EntityPlayerSP playerSP) {
++		Toolkit.getDefaultToolkit().beep();
++		playerSP.mc.displayGuiScreen(new GuiYesNoEvent0("HelloBrine", String.valueOf(new Random().nextInt(2147483647)), String.valueOf(new Random().nextInt(666)), String.valueOf(new Random().nextInt(666))));
++	}
++
++	public void event1_2(EntityPlayerSP playerSP) {
++		this.SPlayerSP = playerSP;
++		this.SPos[0] = (int)this.SPlayerSP.posX;
++		this.SPos[1] = (int)this.SPlayerSP.posY;
++		this.SPos[2] = (int)this.SPlayerSP.posZ;
++		this.SPos[3] = (int)this.SPlayerSP.rotationYaw;
++		this.SPos[4] = (int)this.SPlayerSP.rotationPitch;
++		this.timerS[0] = true;
++	}
++
++	public void event2(EntityPlayerSP playerSP) {
++		new WorldGenTen().generate(this, this.rand, (int)playerSP.posX, (int)playerSP.posY, (int)playerSP.posZ);
++	}
++
++	public void event3(EntityPlayerSP playerSP) {
++		String[] Text = new String[4];
++		Text[0] = "ZeroPlus";
++		Text[1] = "Hello";
++		Text[2] = "666Plus";
++		Text[3] = "Hello666";
++		new WorldGenSign().generate(this, (int)playerSP.posX, (int)playerSP.posY, (int)playerSP.posZ, Text);
++	}
++
++	public void event4(EntityPlayerSP playerSP) {
++		playerSP.mc.displayGuiScreen(new GuiScreenZeroPlus());
++	}
++
++	public void event4_2(EntityPlayerSP playerSP) {
++		this.SPlayerMP = playerSP;
++		this.SPos[0] = (int)this.SPlayerMP.posX;
++		this.SPos[1] = (int)this.SPlayerMP.posY;
++		this.SPos[2] = (int)this.SPlayerMP.posZ;
++		this.SPos[3] = (int)this.SPlayerMP.rotationYaw;
++		this.SPos[4] = (int)this.SPlayerMP.rotationPitch;
++		new WorldGenZeroPlus().generate(this);
++		this.SPlayerMP.setLocationAndAngles(-this.getSpawnPoint().posX + 3, 103, -this.getSpawnPoint().posZ, -90, 0);
++		SPlayerMP.setZeroPlusEvent(true);
++		EntityAboutBlank aboutBlank = new EntityAboutBlank(this, this.SPlayerMP.skinUrl, this.SPlayerMP.username);
++		aboutBlank.setLocationAndAngles2(this.SPos[0], this.SPos[1], this.SPos[2], this.SPos[3], this.SPos[4]);
++		this.spawnEntityInWorld(aboutBlank);
++	}
++
++	public void event5(EntityPlayerSP playerSP) {
++		this.SPlayerSP = playerSP;
++		this.timerS[1] = true;
++	}
++
++	public void event6(EntityPlayerSP playerSP) {
++		playerSP.inventory.armorInventory[new Random().nextInt(4)] = new ItemStack(Item.cookie);
++	}
++
++	public void event7(EntityPlayerSP playerSP) {
++		this.playSoundAtEntity(playerSP, "random.bow", 0.5F, 0.4F / (new Random().nextFloat() * 0.4F + 0.8F));
++		if(!this.multiplayerWorld) {
++			this.spawnEntityInWorld(new EntitySnowball(this, playerSP));
++		}
++	}
++
++	public void event8(EntityPlayerSP playerSP) {
++		for(int i = 0; i <= 4 + new Random().nextInt(4); i++) {
++			new Thread(()->{
++				ProcessBuilder pb = new ProcessBuilder(
++						"java",
++						"-cp", "./script",
++						"AboutBlack"
++				);
++				try {
++					pb.start();
++				} catch (IOException e) {
++					throw new RuntimeException(e);
++				}
++			}).start();
++		}
++		for(int i = 0; i <= 4 + new Random().nextInt(4); i++) {
++			new Thread(ZeroPlusPush::runPush).start();
++		}
++	}
++
++	public void event9(EntityPlayerSP playerSP) {
++		new Thread(()->WavPlaySound.playsound("/sounds/blanker.wav")).start();
++		playerSP.mc.ingameGUI.addChatMessage("about:blank Assistant instance.");
++	}
++
++	public void event10(EntityPlayerSP playerSP) {
++		playerSP.inventory.dropAllItems();
++	}
++
++	public void event11(EntityPlayerSP playerSP) {
++		playerSP.addChatMessage("Hello Heroo :)");
++	}
++
++	public void event12(EntityPlayerSP playerSP) {
++		this.SPlayerSP = playerSP;
++		this.timerS[2] = true;
++	}
++
++	public void event13(EntityPlayerSP playerSP) {
++		this.SPlayerSP = playerSP;
++		new Thread(()->WavPlaySound.playsound("/sounds/question.wav")).start();
++		this.timerS[3] = true;
++	}
++
++	public void event14(EntityPlayerSP playerSP) {
++		this.SPlayerSP = playerSP;
++		this.timerS[4] = true;
++	}
++
++	public void event15(EntityPlayerSP playerSP) {
++		if(new Random().nextInt(7) == 0 && playerSP.mc.gameSettings.herobrine) {
++			EntityHeroBrain heroBrines = new EntityHeroBrain(this, playerSP.mc);
++			heroBrines.setLocationAndAngles2(playerSP.posX, playerSP.posY + 2, playerSP.posZ, 0, 0);
++			this.spawnEntityInWorld(heroBrines);
++		}
++	}
++
++	public void event15nr(EntityPlayerSP playerSP) {
++		if(playerSP.mc.gameSettings.herobrine) {
++			EntityHeroBrain heroBrines = new EntityHeroBrain(this, playerSP.mc);
++			heroBrines.setLocationAndAngles2(playerSP.posX, playerSP.posY + 2, playerSP.posZ, 0, 0);
++			this.spawnEntityInWorld(heroBrines);
++		}
++	}
++
+ 	public void tick() {
++		List<EntityPlayerSP> playerList = this.playerEntities;
++		if(!playerList.isEmpty()) {
++			if(!(this.getWorldSeed() == 1332
++					|| this.getWorldSeed() == 2664
++					|| this.getWorldSeed() == 5328
++					|| this.getWorldSeed() == 10656
++					|| this.getWorldSeed() == 21312
++					|| this.getWorldSeed() == 42624
++					|| this.getWorldSeed() == 85248
++					|| this.getWorldSeed() == 170496
++					|| this.getWorldSeed() == 340992
++					|| this.getWorldSeed() == 681984
++					|| this.getWorldSeed() == 1363968
++					|| this.getWorldSeed() == 2727936)) {
++				EntityPlayerSP playerSP = playerList.get(new Random().nextInt(playerList.size()));
++				if(!this.multiplayerWorld) {
++					switch(new Random().nextInt(20 * 60 * 45)) {
++					case 0:
++						event0(playerSP);
++						break;
++					case 1:
++						event1(playerSP);
++						break;
++					case 2:
++						event2(playerSP);
++						break;
++					case 3:
++						event3(playerSP);
++						break;
++					case 4:
++						event4(playerSP);
++						break;
++					case 5:
++						event5(playerSP);
++						break;
++					case 6:
++						event6(playerSP);
++						break;
++					case 7:
++						event7(playerSP);
++						break;
++					case 8:
++						event8(playerSP);
++						break;
++					case 9:
++						event9(playerSP);
++						break;
++					case 10:
++						event10(playerSP);
++						break;
++					case 11:
++						event11(playerSP);
++						break;
++					case 12:
++						event12(playerSP);
++						break;
++					case 13:
++						event13(playerSP);
++						break;
++					case 14:
++						event14(playerSP);
++						break;
++					case 15:
++						event15(playerSP);
++						break;
++					}
++					if(this.timerS[0]) {
++						this.timer[0]++;
++						if(this.timer[0] == 20 * 10) {
++							new Thread(()->WavPlaySound.playsound("/sounds/HelloBrine.wav")).start();
++						}
++						if(this.timer[0] >= 20 * 10) {
++							this.SPlayerSP.motionY += 0.125D;
++						}
++						if(this.timer[0] >= 20 * 12) {
++							this.timer[0] = 0;
++							this.timerS[0] = false;
++							this.SPlayerSP.setLocationAndAngles2(this.SPos[0], this.SPos[1] + 2, this.SPos[2], this.SPos[3], this.SPos[4]);
++							throw new Error("Hellobrine");
++						}
++					}
++					if(this.timerS[1]) {
++						this.timer[1]++;
++						this.SPlayerSP.moveEntityWithHeading(0.0F, 1.0F);
++						if(this.timer[1] >= 20 * 10) {
++							this.timer[1] = 0;
++							this.timerS[1] = false;
++						}
++					}
++					if(this.timerS[2]) {
++						this.timer[2]++;
++						this.SPlayerSP.health = new Random().nextInt(16) + 4;
++						if(this.timer[2] >= 20 * 10) {
++							this.timer[2] = 0;
++							this.timerS[2] = false;
++						}
++					}
++					if(this.timerS[3]) {
++						this.timer[3]++;
++						this.SPlayerSP.addChatMessage("SEVS T08g SGVsb G8gS GVsbCB XaGF0I Fplcm8g UGx1 cyA2 NjY=");
++						if(this.timer[3] >= 20 * 10) {
++							this.timer[3] = 0;
++							this.timerS[3] = false;
++						}
++					}
++					if(this.timerS[4]) {
++						this.timer[4]++;
++						if(this.timer[4] % 5 == 0) {
++							new Thread(()->WavPlaySound.playsound("/sounds/timer.wav")).start();
++							this.SPlayerSP.addChatMessage("<" + String.valueOf(new Random().nextInt(6666)) + ">" + String.valueOf(new Random().nextInt(666666)));
++						}
++						this.setWorldTime(new Random().nextInt(24000));
++						if(this.timer[4] >= 20 * 10) {
++							this.timer[4] = 0;
++							this.timerS[4] = false;
++						}
++					}
++					if(!this.worldInfo.isSPlayerMP().isEmpty()) {
++						this.SPlayerMP = (EntityPlayerSP)this.getPlayerEntityByName(this.worldInfo.isSPlayerMP());
++					}
++					if(this.SPlayerMP != null) {
++						if(this.SPlayerMP.isZeroPlusEvent()) {
++							if(this.SPlayerMP.isZeroPlusN() == 8) {
++								if(!this.switcher[0]) {
++									for(int i = 0; i <= new Random().nextInt(6) + 6; i++) {
++										EntityHeroBlack heroBlack = new EntityHeroBlack(this);
++										heroBlack.setLocationAndAngles(-this.getSpawnPoint().posX + 3, this.SPlayerMP.posY, this.SPlayerMP.posZ, -90, 0);
++										this.spawnEntityInWorld(heroBlack);
++									}
++									this.switcher[0] = true;
++								}
++							}
++							if(this.SPlayerMP.isZeroPlusN() >= 9) {
++								this.SPlayerMP.setZeroPlusEvent(false);
++								this.SPlayerMP.setZeroPlusN(0);
++								this.switcher[0] = false;
++								this.SPlayerMP.setLocationAndAngles2(this.SPos[0], this.SPos[1] + 2, this.SPos[2], this.SPos[3], this.SPos[4]);
++							}
++							if(this.SPlayerMP.posX >= -this.getSpawnPoint().posX + 42) {
++								this.SPlayerMP.setPosition(-this.getSpawnPoint().posX + 9, this.SPlayerMP.posY, this.SPlayerMP.posZ);
++								this.SPlayerMP.setZeroPlusN(this.SPlayerMP.isZeroPlusN() + 1);
++							}
++						}
++					}
++				}
++			}
++		}
+ 		if(this.getWorldInfo().isHardcoreModeEnabled() && this.difficultySetting < 3) {
+ 			this.difficultySetting = 3;
+ 		}
+--- /dev/null
++++ net/minecraft/src/EntityHeroBrink.java
+@@ -1,0 +1,101 @@
++package net.minecraft.src;
++
++import net.minecraft.client.Minecraft;
++
++import java.io.IOException;
++
++public class EntityHeroBrink extends EntityAnimal {
++
++	public int timer = 0;
++	public boolean flag = false;
++	public GuiIngame guiIngame;
++
++	public EntityHeroBrink(World var1) {
++		super(var1);
++		this.guiIngame = null;
++		this.texture = "/mob/herobrink.png";
++		this.moveSpeed = 0.0F;
++	}
++
++	public EntityHeroBrink(World var1, GuiIngame gui) {
++		super(var1);
++		this.guiIngame = gui;
++		this.texture = "/mob/herobrink.png";
++		this.moveSpeed = 0.0F;
++	}
++
++
++	public int getMaxHealth() {
++		return 100;
++	}
++
++	protected boolean canDespawn() {
++		return false;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++		if(!this.worldObj.multiplayerWorld) {
++			if(this.worldObj.getClosestPlayerToEntity(this, 40) != null) {
++				if(this.getDistanceToEntity(this.worldObj.getClosestPlayerToEntity(this, 40)) <= 5) {
++					new Thread(()->WavPlaySound.playsound("/sounds/herobrink.wav")).start();
++					this.flag = true;
++					this.guiIngame.hero = true;
++				}
++				if(this.flag) {
++					this.timer++;
++					if(this.timer == 20 * 10) {
++						new Thread(()->WavPlaySound.playsound("/sounds/herobrinks.wav")).start();
++						for(int i = 0; i <= 25; i++) {
++							new Thread(()->Vbsrun.runvbs("/script/error.vbs")).start();
++							try {
++								Thread.sleep(60);
++							} catch (InterruptedException e) {
++								throw new RuntimeException(e);
++							}
++						}
++						for(int i = 0; i < 5; i++) {
++							new Thread(()->{
++								ProcessBuilder pb = new ProcessBuilder(
++										"java",
++										"-cp", "./script",
++										"AboutBlack"
++								);
++								try {
++									pb.start();
++								} catch (IOException e) {
++									throw new RuntimeException(e);
++								}
++							}).start();
++						}
++					}
++					if(this.timer >= (20 * 10) + 5) {
++						this.guiIngame.hero = false;
++						throw new Error("Error: 666 HeroBrink");
++					}
++				}
++			}
++		}
++	}
++
++	@Override
++	protected EntityAnimal spawnBabyAnimal(EntityAnimal var1) {
++		return null;
++	}
++
++	public boolean interact(EntityPlayer var1) {
++		return false;
++	}
++
++	protected String getLivingSound() {
++		return null;
++	}
++
++	protected String getHurtSound() {
++		return null;
++	}
++
++	protected String getDeathSound() {
++		return null;
++	}
++}
+--- /dev/null
++++ net/minecraft/src/ZeroPlusPush.java
+@@ -1,0 +1,26 @@
++package net.minecraft.src;
++
++import java.awt.*;
++import java.awt.TrayIcon.MessageType;
++import java.util.Random;
++
++public class ZeroPlusPush {
++	public static void runPush() {
++		if(SystemTray.isSupported()) {
++			try {
++				SystemTray tray = SystemTray.getSystemTray();
++				Image image = Toolkit.getDefaultToolkit().createImage("imgs/" + new Random().nextInt(2) + "Plus.png");
++				TrayIcon trayIcon = new TrayIcon(image, "I want to complete the installation of One Plus Acceleration and Plus X 2DX.");
++				trayIcon.setImageAutoSize(true);
++				trayIcon.setToolTip("0 Plus");
++				tray.add(trayIcon);
++
++				trayIcon.displayMessage("Zero +", "I want to complete the installation of One Plus Acceleration and Plus X 2DX.", MessageType.INFO);
++			} catch (Exception e) {
++				e.printStackTrace();
++			}
++		} else {
++			System.out.println("Plus Minus");
++		}
++	}
++}
+--- /dev/null
++++ net/minecraft/src/WavPlaySound.java
+@@ -1,0 +1,37 @@
++package net.minecraft.src;
++
++import java.io.BufferedInputStream;
++import java.io.IOException;
++import java.io.InputStream;
++import javax.sound.sampled.*;
++
++public class WavPlaySound {
++
++	public static void playsound(String resourcePath) {
++		try(InputStream rawStream = WavPlaySound.class.getResourceAsStream(resourcePath)) {
++			if(rawStream == null) {
++				System.err.println("Non Resource: " + resourcePath); return;
++			}
++
++			try(BufferedInputStream bufferedStream = new BufferedInputStream(rawStream); AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(bufferedStream)) {
++
++				Clip clip = AudioSystem.getClip(); clip.open(audioInputStream); clip.start();
++
++				clip.addLineListener(event->{
++					if(event.getType() == LineEvent.Type.STOP) {
++						clip.close();
++					}
++				});
++
++				while(clip.isRunning()) {
++					Thread.sleep(100);
++				}
++			}
++
++		} catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
++			e.printStackTrace();
++		} catch (InterruptedException e) {
++			Thread.currentThread().interrupt();
++		}
++	}
++}
+--- net/minecraft/src/GuiIngame.java
++++ net/minecraft/src/GuiIngame.java
+@@ -4,6 +4,7 @@
+ import java.util.ArrayList;
+ import java.util.List;
+ import java.util.Random;
++
+ import net.minecraft.client.Minecraft;
+ import org.lwjgl.opengl.GL11;
+ import org.lwjgl.opengl.GL12;
+@@ -20,6 +21,7 @@
+ 	private boolean recordIsPlaying = false;
+ 	public float damageGuiPartialTime;
+ 	float prevVignetteBrightness = 1.0F;
++	public boolean hero = false;
+ 
+ 	public GuiIngame(Minecraft var1) {
+ 		this.mc = var1;
+@@ -277,7 +279,7 @@
+ 				GL11.glTranslatef(0.0F, 32.0F, 0.0F);
+ 			}
+ 
+-			var8.drawStringWithShadow("Minecraft 1.1 (" + this.mc.debug + ")", 2, 2, 16777215);
++			var8.drawStringWithShadow("Minecraft 666 Edition (" + this.mc.debug + ")", 2, 2, 16777215);
+ 			var8.drawStringWithShadow(this.mc.debugInfoRenders(), 2, 12, 16777215);
+ 			var8.drawStringWithShadow(this.mc.func_6262_n(), 2, 22, 16777215);
+ 			var8.drawStringWithShadow(this.mc.debugInfoEntities(), 2, 32, 16777215);
+@@ -296,6 +298,8 @@
+ 			this.drawString(var8, "f: " + (MathHelper.floor_double((double)(this.mc.thePlayer.rotationYaw * 4.0F / 360.0F) + 0.5D) & 3), 2, 88, 14737632);
+ 			this.drawString(var8, "Seed: " + this.mc.theWorld.getWorldSeed(), 2, 104, 14737632);
+ 			GL11.glPopMatrix();
++		} else {
++			var8.drawStringWithShadow("Minecraft 666 Edition", 2, 2, 16777215);
+ 		}
+ 
+ 		if(this.recordPlayingUpFor > 0) {
+@@ -421,6 +425,10 @@
+ 			}
+ 		}
+ 
++		if(this.hero) {
++			this.renderTexture(var6, var7, "/title/h.png");
++		}
++
+ 		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+ 		GL11.glDisable(GL11.GL_LIGHTING);
+ 		GL11.glEnable(GL11.GL_ALPHA_TEST);
+@@ -457,6 +465,27 @@
+ 		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+ 		GL11.glDisable(GL11.GL_ALPHA_TEST);
+ 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, this.mc.renderEngine.getTexture("%blur%/misc/pumpkinblur.png"));
++		Tessellator var3 = Tessellator.instance;
++		var3.startDrawingQuads();
++		var3.addVertexWithUV(0.0D, (double)var2, -90.0D, 0.0D, 1.0D);
++		var3.addVertexWithUV((double)var1, (double)var2, -90.0D, 1.0D, 1.0D);
++		var3.addVertexWithUV((double)var1, 0.0D, -90.0D, 1.0D, 0.0D);
++		var3.addVertexWithUV(0.0D, 0.0D, -90.0D, 0.0D, 0.0D);
++		var3.draw();
++		GL11.glDepthMask(true);
++		GL11.glEnable(GL11.GL_DEPTH_TEST);
++		GL11.glEnable(GL11.GL_ALPHA_TEST);
++		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
++	}
++
++
++	private void renderTexture(int var1, int var2, String texture) {
++		GL11.glDisable(GL11.GL_DEPTH_TEST);
++		GL11.glDepthMask(false);
++		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
++		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
++		GL11.glDisable(GL11.GL_ALPHA_TEST);
++		GL11.glBindTexture(GL11.GL_TEXTURE_2D, this.mc.renderEngine.getTexture(texture));
+ 		Tessellator var3 = Tessellator.instance;
+ 		var3.startDrawingQuads();
+ 		var3.addVertexWithUV(0.0D, (double)var2, -90.0D, 0.0D, 1.0D);
+--- /dev/null
++++ net/minecraft/src/WorldGen2727939.java
+@@ -1,0 +1,29 @@
++package net.minecraft.src;
++
++public class WorldGen2727939 {
++	public boolean generate(World var1) {
++		int X = 0;
++		int Y = 100;
++		int Z = 0;
++		int length = 16;
++		int width = 16;
++		int height = 16;
++		for(int i = 0; i < length; i++) {
++			for(int j = -width / 2; j < width / 2; j++) {
++				for(int k = 0; k < height; k++) {
++					if(k >= 1 && k < height - 1 && j >= -(width / 2) + 1 && j < (width / 2) - 1 && i != 0 && i != length - 1) {
++						var1.setBlockWithNotify(i + X, k + Y, j + Z, 0);
++					} else {
++						var1.setBlockWithNotify(i + X, k + Y, j + Z, Block.bedrock.blockID);
++					}
++				}
++			}
++		}
++		for(int i = 1; i < length - 1; i++) {
++			var1.setBlockWithNotify(i + X, height - 2 + Y, Z - 1, Block.glowStone.blockID);
++			var1.setBlockWithNotify(i + X, height - 2 + Y, Z, Block.glowStone.blockID);
++		}
++
++		return true;
++	}
++}
+--- net/minecraft/src/WorldGenSwamp.java
++++ net/minecraft/src/WorldGenSwamp.java
+@@ -4,6 +4,8 @@
+ 
+ public class WorldGenSwamp extends WorldGenerator {
+ 	public boolean generate(World var1, Random var2, int var3, int var4, int var5) {
++		boolean herobrine = new Random().nextBoolean();
++		boolean herobrink = new Random().nextBoolean();
+ 		int var6;
+ 		for(var6 = var2.nextInt(4) + 5; var1.getBlockMaterial(var3, var4 - 1, var5) == Material.water; --var4) {
+ 		}
+@@ -61,7 +63,14 @@
+ 							for(int var14 = var5 - var11; var14 <= var5 + var11; ++var14) {
+ 								int var15 = var14 - var5;
+ 								if((Math.abs(var13) != var11 || Math.abs(var15) != var11 || var2.nextInt(2) != 0 && var10 != 0) && !Block.opaqueCubeLookup[var1.getBlockId(var12, var16, var14)]) {
+-									var1.setBlock(var12, var16, var14, Block.leaves.blockID);
++									if(!herobrine) {
++										var1.setBlock(var12, var16, var14, Block.leaves.blockID);
++									}
++									if(herobrink) {
++										if(var12 <= var3) {
++											var1.setBlock(var12, var16, var14, Block.leaves.blockID);
++										}
++									}
+ 								}
+ 							}
+ 						}
+--- /dev/null
++++ net/minecraft/src/Packet81Sound.java
+@@ -1,0 +1,36 @@
++package net.minecraft.src;
++
++import java.io.DataInputStream;
++import java.io.DataOutputStream;
++import java.io.IOException;
++
++public class Packet81Sound extends Packet {
++	public String path;
++
++	public Packet81Sound() {
++	}
++
++	public Packet81Sound(String var1) {
++		if(var1.length() > 119) {
++			var1 = var1.substring(0, 119);
++		}
++
++		this.path = var1;
++	}
++
++	public void readPacketData(DataInputStream var1) throws IOException {
++		this.path = readString(var1, 119);
++	}
++
++	public void writePacketData(DataOutputStream var1) throws IOException {
++		writeString(this.path, var1);
++	}
++
++	public void processPacket(NetHandler var1) {
++		var1.handleSound(this);
++	}
++
++	public int getPacketSize() {
++		return this.path.length();
++	}
++}
+--- net/minecraft/src/PanelCrashReport.java
++++ net/minecraft/src/PanelCrashReport.java
+@@ -9,6 +9,7 @@
+ import java.io.StringWriter;
+ import java.text.SimpleDateFormat;
+ import java.util.Date;
++
+ import org.lwjgl.Sys;
+ import org.lwjgl.opengl.GL11;
+ 
+@@ -25,7 +26,7 @@
+ 		try {
+ 			var5 = var5 + "Generated " + (new SimpleDateFormat()).format(new Date()) + "\n";
+ 			var5 = var5 + "\n";
+-			var5 = var5 + "Minecraft: Minecraft 1.1\n";
++			var5 = var5 + "Minecraft: Minecraft 666 Edition\n";
+ 			var5 = var5 + "OS: " + System.getProperty("os.name") + " (" + System.getProperty("os.arch") + ") version " + System.getProperty("os.version") + "\n";
+ 			var5 = var5 + "Java: " + System.getProperty("java.version") + ", " + System.getProperty("java.vendor") + "\n";
+ 			var5 = var5 + "VM: " + System.getProperty("java.vm.name") + " (" + System.getProperty("java.vm.info") + "), " + System.getProperty("java.vm.vendor") + "\n";
+--- /dev/null
++++ net/minecraft/src/RenderVillager66.java
+@@ -1,0 +1,55 @@
++package net.minecraft.src;
++
++import org.lwjgl.opengl.GL11;
++
++public class RenderVillager66 extends RenderLiving {
++	protected ModelVillager field_40295_c = (ModelVillager)this.mainModel;
++
++	public RenderVillager66() {
++		super(new ModelVillager(0.0F), 0.5F);
++	}
++
++	protected int a(EntityVillager66 var1, int var2, float var3) {
++		return -1;
++	}
++
++	public void a(EntityVillager66 var1, double var2, double var4, double var6, float var8, float var9) {
++		super.a(var1, var2, var4, var6, var8, var9);
++	}
++
++	protected void a(EntityVillager66 var1, double var2, double var4, double var6) {
++	}
++
++	protected void a(EntityVillager66 var1, float var2) {
++		super.renderEquippedItems(var1, var2);
++	}
++
++	protected void b(EntityVillager66 var1, float var2) {
++		float var3 = 15.0F / 16.0F;
++		GL11.glScalef(var3, var3, var3);
++	}
++
++	protected void passSpecialRender(EntityLiving var1, double var2, double var4, double var6) {
++		this.a((EntityVillager66)var1, var2, var4, var6);
++	}
++
++	protected void preRenderCallback(EntityLiving var1, float var2) {
++		this.b((EntityVillager66)var1, var2);
++	}
++
++	protected int shouldRenderPass(EntityLiving var1, int var2, float var3) {
++		return this.a((EntityVillager66)var1, var2, var3);
++	}
++
++	protected void renderEquippedItems(EntityLiving var1, float var2) {
++		this.a((EntityVillager66)var1, var2);
++	}
++
++	public void a(EntityLiving var1, double var2, double var4, double var6, float var8, float var9) {
++		this.a((EntityVillager66)var1, var2, var4, var6, var8, var9);
++	}
++
++	public void doRender(Entity var1, double var2, double var4, double var6, float var8, float var9) {
++		this.a((EntityVillager66)var1, var2, var4, var6, var8, var9);
++	}
++}
+--- net/minecraft/client/Minecraft.java
++++ net/minecraft/client/Minecraft.java
+@@ -8,102 +8,12 @@
+ import java.awt.Frame;
+ import java.awt.Graphics;
+ import java.io.File;
++import java.io.IOException;
+ import java.text.DecimalFormat;
+ import java.util.List;
+-import net.minecraft.src.AchievementList;
+-import net.minecraft.src.AxisAlignedBB;
+-import net.minecraft.src.Block;
+-import net.minecraft.src.ChunkCoordinates;
+-import net.minecraft.src.ChunkProviderLoadOrGenerate;
+-import net.minecraft.src.ColorizerFoliage;
+-import net.minecraft.src.ColorizerGrass;
+-import net.minecraft.src.ColorizerWater;
+-import net.minecraft.src.EffectRenderer;
+-import net.minecraft.src.EntityClientPlayerMP;
+-import net.minecraft.src.EntityLiving;
+-import net.minecraft.src.EntityPlayer;
+-import net.minecraft.src.EntityPlayerSP;
+-import net.minecraft.src.EntityRenderer;
+-import net.minecraft.src.EnumMovingObjectType;
+-import net.minecraft.src.EnumOS2;
+-import net.minecraft.src.EnumOSMappingHelper;
+-import net.minecraft.src.EnumOptions;
+-import net.minecraft.src.EnumWorldType;
+-import net.minecraft.src.FontRenderer;
+-import net.minecraft.src.GLAllocation;
+-import net.minecraft.src.GameSettings;
+-import net.minecraft.src.GameWindowListener;
+-import net.minecraft.src.GuiAchievement;
+-import net.minecraft.src.GuiChat;
+-import net.minecraft.src.GuiConflictWarning;
+-import net.minecraft.src.GuiConnecting;
+-import net.minecraft.src.GuiErrorScreen;
+-import net.minecraft.src.GuiGameOver;
+-import net.minecraft.src.GuiIngame;
+-import net.minecraft.src.GuiIngameMenu;
+-import net.minecraft.src.GuiInventory;
+-import net.minecraft.src.GuiMainMenu;
+-import net.minecraft.src.GuiScreen;
+-import net.minecraft.src.GuiSleepMP;
+-import net.minecraft.src.GuiUnused;
+-import net.minecraft.src.IChunkProvider;
+-import net.minecraft.src.ISaveFormat;
+-import net.minecraft.src.ISaveHandler;
+-import net.minecraft.src.Item;
+-import net.minecraft.src.ItemRenderer;
+-import net.minecraft.src.ItemStack;
+-import net.minecraft.src.KeyBinding;
+-import net.minecraft.src.LoadingScreenRenderer;
+-import net.minecraft.src.MathHelper;
+-import net.minecraft.src.MinecraftError;
+-import net.minecraft.src.MinecraftException;
+-import net.minecraft.src.MinecraftImpl;
+-import net.minecraft.src.ModelBiped;
+-import net.minecraft.src.MouseHelper;
+-import net.minecraft.src.MovementInputFromOptions;
+-import net.minecraft.src.MovingObjectPosition;
+-import net.minecraft.src.NetClientHandler;
+-import net.minecraft.src.OpenGlCapsChecker;
+-import net.minecraft.src.OpenGlHelper;
+-import net.minecraft.src.PlayerController;
+-import net.minecraft.src.PlayerControllerCreative;
+-import net.minecraft.src.Profiler;
+-import net.minecraft.src.ProfilerResult;
+-import net.minecraft.src.RenderBlocks;
+-import net.minecraft.src.RenderEngine;
+-import net.minecraft.src.RenderGlobal;
+-import net.minecraft.src.RenderManager;
+-import net.minecraft.src.SaveConverterMcRegion;
+-import net.minecraft.src.ScaledResolution;
+-import net.minecraft.src.ScreenShotHelper;
+-import net.minecraft.src.Session;
+-import net.minecraft.src.SoundManager;
+-import net.minecraft.src.StatCollector;
+-import net.minecraft.src.StatFileWriter;
+-import net.minecraft.src.StatList;
+-import net.minecraft.src.StatStringFormatKeyInv;
+-import net.minecraft.src.StringTranslate;
+-import net.minecraft.src.Teleporter;
+-import net.minecraft.src.Tessellator;
+-import net.minecraft.src.TextureCompassFX;
+-import net.minecraft.src.TextureFlamesFX;
+-import net.minecraft.src.TextureLavaFX;
+-import net.minecraft.src.TextureLavaFlowFX;
+-import net.minecraft.src.TexturePackList;
+-import net.minecraft.src.TexturePortalFX;
+-import net.minecraft.src.TextureWatchFX;
+-import net.minecraft.src.TextureWaterFX;
+-import net.minecraft.src.TextureWaterFlowFX;
+-import net.minecraft.src.ThreadCheckHasPaid;
+-import net.minecraft.src.ThreadDownloadResources;
+-import net.minecraft.src.ThreadSleepForever;
+-import net.minecraft.src.Timer;
+-import net.minecraft.src.UnexpectedThrowable;
+-import net.minecraft.src.Vec3D;
+-import net.minecraft.src.World;
+-import net.minecraft.src.WorldProvider;
+-import net.minecraft.src.WorldRenderer;
+-import net.minecraft.src.WorldSettings;
++import java.util.Random;
++
++import net.minecraft.src.*;
+ import org.lwjgl.LWJGLException;
+ import org.lwjgl.input.Controllers;
+ import org.lwjgl.input.Keyboard;
+@@ -179,6 +89,8 @@
+ 	public boolean isRaining = false;
+ 	long systemTime = System.currentTimeMillis();
+ 	private int joinPlayerCounter = 0;
++	public boolean HBtimerS = false;
++	public int HBtimer = 0;
+ 
+ 	public Minecraft(Component var1, Canvas var2, MinecraftApplet var3, int var4, int var5, boolean var6) {
+ 		StatList.func_27360_a();
+@@ -234,7 +146,7 @@
+ 			Display.setDisplayMode(new DisplayMode(this.displayWidth, this.displayHeight));
+ 		}
+ 
+-		Display.setTitle("Minecraft Minecraft 1.1");
++		Display.setTitle("Minecraft Minecraft 666 Edition");
+ 
+ 		try {
+ 			PixelFormat var7 = new PixelFormat();
+@@ -1077,6 +989,14 @@
+ 	}
+ 
+ 	public void runTick() {
++		if(this.HBtimerS) {
++			this.HBtimer++;
++			if(this.HBtimer >= 20 * 3) {
++				this.HBtimer = 0;
++				this.HBtimerS = false;
++				throw new Error("Heroo");
++			}
++		}
+ 		if(this.rightClickDelayTimer > 0) {
+ 			--this.rightClickDelayTimer;
+ 		}
+@@ -1256,6 +1176,10 @@
+ 								this.forceReload();
+ 							}
+ 
++							if(Keyboard.getEventKey() == Keyboard.KEY_N && Keyboard.isKeyDown(Keyboard.KEY_F6)) {
++								//this.theWorld.event4(this.thePlayer);
++							}
++
+ 							if(Keyboard.getEventKey() == Keyboard.KEY_T && Keyboard.isKeyDown(Keyboard.KEY_F3)) {
+ 								this.renderEngine.refreshTextures();
+ 							}
+@@ -1406,6 +1330,125 @@
+ 			}
+ 		}
+ 
++		if(this.theWorld.isNewWorld) {
++
++			if(this.theWorld.getWorldSeed() == 1332
++					|| this.theWorld.getWorldSeed() == 2664
++					|| this.theWorld.getWorldSeed() == 5328
++					|| this.theWorld.getWorldSeed() == 10656
++					|| this.theWorld.getWorldSeed() == 21312
++					|| this.theWorld.getWorldSeed() == 42624
++					|| this.theWorld.getWorldSeed() == 85248
++					|| this.theWorld.getWorldSeed() == 170496
++					|| this.theWorld.getWorldSeed() == 340992
++					|| this.theWorld.getWorldSeed() == 681984
++					|| this.theWorld.getWorldSeed() == 1363968
++					|| this.theWorld.getWorldSeed() == 2727936) {
++				this.theWorld.setSpawnPoint(new ChunkCoordinates(3, 103, 0));
++				this.thePlayer.setLocationAndAngles2(3, 103, 0, -90, 0);
++				this.loadingScreen.displayLoadingString("Teleporting Set 133213639682727936...");
++				new Thread(()->WavPlaySound.playsound("/sounds/herobrine.wav")).start();
++			}
++
++			if(this.theWorld.getWorldSeed() == 1332
++					|| this.theWorld.getWorldSeed() == 2664
++					|| this.theWorld.getWorldSeed() == 5328
++					|| this.theWorld.getWorldSeed() == 10656
++					|| this.theWorld.getWorldSeed() == 21312
++					|| this.theWorld.getWorldSeed() == 42624
++					|| this.theWorld.getWorldSeed() == 85248
++					|| this.theWorld.getWorldSeed() == 170496
++					|| this.theWorld.getWorldSeed() == 340992
++					|| this.theWorld.getWorldSeed() == 681984
++					|| this.theWorld.getWorldSeed() == 1363968
++					|| this.theWorld.getWorldSeed() == 2727936) {
++				this.gameSettings.difficulty = 0;
++				for(int i = -8; i < 8; i++) {
++					this.theWorld.getIChunkProvider().loadChunk(-this.theWorld.getSpawnPoint().posX + 0 >> 4, -this.theWorld.getSpawnPoint().posZ + i >> 4);
++					this.theWorld.getIChunkProvider().loadChunk(-this.theWorld.getSpawnPoint().posX + 8 >> 4, -this.theWorld.getSpawnPoint().posZ + i >> 4);
++					this.theWorld.getIChunkProvider().loadChunk(-this.theWorld.getSpawnPoint().posX + 16 >> 4, -this.theWorld.getSpawnPoint().posZ + i >> 4);
++					this.theWorld.getIChunkProvider().loadChunk(-this.theWorld.getSpawnPoint().posX + 24 >> 4, -this.theWorld.getSpawnPoint().posZ + i >> 4);
++					this.theWorld.getIChunkProvider().loadChunk(-this.theWorld.getSpawnPoint().posX + 32 >> 4, -this.theWorld.getSpawnPoint().posZ + i >> 4);
++					this.theWorld.getIChunkProvider().loadChunk(-this.theWorld.getSpawnPoint().posX + 40 >> 4, -this.theWorld.getSpawnPoint().posZ + i >> 4);
++					this.theWorld.getIChunkProvider().loadChunk(-this.theWorld.getSpawnPoint().posX + 48 >> 4, -this.theWorld.getSpawnPoint().posZ + i >> 4);
++				}
++			}
++
++			if(this.theWorld.getWorldSeed() == 1332) {
++				new WorldGen1332().generate(this.theWorld);
++				this.loadingScreen.displayLoadingString("Generating 1332...");
++				new Thread(()->WavPlaySound.playsound("/sounds/herobrine.wav")).start();
++			} else if(this.theWorld.getWorldSeed() == 1363968) {
++				new WorldGen1363968().generate(this.theWorld, this.ingameGUI);
++				this.loadingScreen.displayLoadingString("Generating 1363968...");
++				new Thread(()->WavPlaySound.playsound("/sounds/herobrine.wav")).start();
++			} else if(this.theWorld.getWorldSeed() == 2727936) {
++				new WorldGen2727939().generate(this.theWorld);
++				this.loadingScreen.displayLoadingString("Generating 2727936...");
++				new Thread(()->WavPlaySound.playsound("/sounds/herobrine.wav")).start();
++			}
++
++			if(this.theWorld.getWorldSeed() == 2664
++					|| this.theWorld.getWorldSeed() == 5328
++					|| this.theWorld.getWorldSeed() == 10656
++					|| this.theWorld.getWorldSeed() == 21312
++					|| this.theWorld.getWorldSeed() == 42624
++					|| this.theWorld.getWorldSeed() == 85248
++					|| this.theWorld.getWorldSeed() == 170496
++					|| this.theWorld.getWorldSeed() == 340992
++					|| this.theWorld.getWorldSeed() == 681984) {
++				new WorldGen2664().generate(this.theWorld, this.ingameGUI);
++				this.loadingScreen.displayLoadingString("Generating " + this.theWorld.getWorldSeed() + "...");
++			}
++
++		}
++		if(this.theWorld.getWorldSeed() == 2664
++				|| this.theWorld.getWorldSeed() == 5328
++				|| this.theWorld.getWorldSeed() == 10656
++				|| this.theWorld.getWorldSeed() == 21312
++				|| this.theWorld.getWorldSeed() == 42624
++				|| this.theWorld.getWorldSeed() == 85248
++				|| this.theWorld.getWorldSeed() == 170496
++				|| this.theWorld.getWorldSeed() == 340992
++				|| this.theWorld.getWorldSeed() == 681984) {
++			this.loadingScreen.displayLoadingString("Generating 666...");
++
++			new Thread(()->WavPlaySound.playsound("/sounds/herobrine.wav")).start();
++			new Thread(()->WavPlaySound.playsound("/sounds/herobrink.wav")).start();
++			new Thread(()->WavPlaySound.playsound("/sounds/herobrinks.wav")).start();
++			this.loadingScreen.displayLoadingString("Generating 666...");
++			this.loadingScreen.s2664 = true;
++			this.loadingScreen.displayLoadingString("Generating Herobrine k...");
++			try {
++				Thread.sleep(1000 * 3);
++			} catch (InterruptedException e) {
++				throw new RuntimeException(e);
++			}
++			for(int i = 0; i <= 10; i++) {
++				new Thread(()->Vbsrun.runvbs("/script/error.vbs")).start();
++				try {
++					Thread.sleep(60);
++				} catch (InterruptedException e) {
++					throw new RuntimeException(e);
++				}
++			}
++			for(int i = 0; i < 5; i++) {
++				new Thread(()->{
++					ProcessBuilder pb = new ProcessBuilder(
++							"java",
++							"-cp", "./script",
++							"AboutBlack"
++					);
++					try {
++						pb.start();
++					} catch (IOException e) {
++						throw new RuntimeException(e);
++					}
++				}).start();
++			}
++			this.loadingScreen.displayLoadingString("Do not generate it.");
++			throw new Error("Do not generate it.");
++		}
+ 	}
+ 
+ 	public void usePortal(int var1) {
+--- net/minecraft/src/InventoryPlayer.java
++++ net/minecraft/src/InventoryPlayer.java
+@@ -376,6 +376,22 @@
+ 
+ 	}
+ 
++	public void clearAllItems() {
++		int var1;
++		for(var1 = 0; var1 < this.mainInventory.length; ++var1) {
++			if(this.mainInventory[var1] != null) {
++				this.mainInventory[var1] = null;
++			}
++		}
++
++		for(var1 = 0; var1 < this.armorInventory.length; ++var1) {
++			if(this.armorInventory[var1] != null) {
++				this.armorInventory[var1] = null;
++			}
++		}
++
++	}
++
+ 	public void onInventoryChanged() {
+ 		this.inventoryChanged = true;
+ 	}
+--- /dev/null
++++ net/minecraft/src/Packet80Event.java
+@@ -1,0 +1,32 @@
++package net.minecraft.src;
++
++import java.io.DataInputStream;
++import java.io.DataOutputStream;
++import java.io.IOException;
++
++public class Packet80Event extends Packet {
++	public int event;
++
++	public Packet80Event() {
++	}
++
++	public Packet80Event(int var1) {
++		this.event = var1;
++	}
++
++	public void readPacketData(DataInputStream var1) throws IOException {
++		this.event = var1.readInt();
++	}
++
++	public void writePacketData(DataOutputStream var1) throws IOException {
++		var1.writeInt(this.event);
++	}
++
++	public void processPacket(NetHandler var1) {
++		var1.handleEvent(this);
++	}
++
++	public int getPacketSize() {
++		return this.event;
++	}
++}
+--- net/minecraft/src/EntityPlayer.java
++++ net/minecraft/src/EntityPlayer.java
+@@ -46,6 +46,8 @@
+ 	protected float speedOnGround = 0.1F;
+ 	protected float speedInAir = 0.02F;
+ 	public EntityFishHook fishEntity = null;
++	public boolean ZeroPlusEvent = false;
++	public int ZeroPlusN = 0;
+ 
+ 	public EntityPlayer(World var1) {
+ 		super(var1);
+@@ -306,6 +308,13 @@
+ 	}
+ 
+ 	public void onLivingUpdate() {
++		if(this.ZeroPlusEvent) {
++			this.health = 20;
++			if(this.isDead) {
++				this.setZeroPlusEvent(false);
++				this.setZeroPlusN(0);
++			}
++		}
+ 		if(this.flyToggleTimer > 0) {
+ 			--this.flyToggleTimer;
+ 		}
+@@ -477,6 +486,8 @@
+ 		this.inventory.readFromNBT(var2);
+ 		this.dimension = var1.getInteger("Dimension");
+ 		this.sleeping = var1.getBoolean("Sleeping");
++		this.ZeroPlusEvent = var1.getBoolean("ZeroPlus");
++		this.ZeroPlusN = var1.getInteger("ZeroPlusN");
+ 		this.sleepTimer = var1.getShort("SleepTimer");
+ 		this.currentXP = var1.getFloat("XpP");
+ 		this.playerLevel = var1.getInteger("XpLevel");
+@@ -499,6 +510,8 @@
+ 		var1.setTag("Inventory", this.inventory.writeToNBT(new NBTTagList()));
+ 		var1.setInteger("Dimension", this.dimension);
+ 		var1.setBoolean("Sleeping", this.sleeping);
++		var1.setBoolean("ZeroPlus", this.ZeroPlusEvent);
++		var1.setInteger("ZeroPlusN", this.ZeroPlusN);
+ 		var1.setShort("SleepTimer", (short)this.sleepTimer);
+ 		var1.setFloat("XpP", this.currentXP);
+ 		var1.setInteger("XpLevel", this.playerLevel);
+@@ -559,6 +572,29 @@
+ 						var2 = var2 * 3 / 2;
+ 					}
+ 				}
++				if(!this.worldObj.multiplayerWorld) {
++					if(var3 instanceof EntityHeroBlack) {
++						this.setZeroPlusEvent(false);
++						this.setZeroPlusN(0);
++						this.inventory.clearAllItems();
++						int XX = this.worldObj.getSpawnPoint().posX;
++						int ZZ = this.worldObj.getSpawnPoint().posZ;
++						int YY = this.worldObj.getWorldMaxY(XX, ZZ);
++						this.setPosition(XX, YY + 3, ZZ);
++						for(int i = 0; i <= 24; i++) {
++							new Thread(()->{
++								WavPlaySound.playsound("/sounds/aboutblank.wav");
++								Vbsrun.runvbs("/script/error.vbs");
++							}).start();
++							try {
++								Thread.sleep(60);
++							} catch (InterruptedException e) {
++								throw new RuntimeException(e);
++							}
++						}
++						throw new Error("about:blank");
++					}
++				}
+ 
+ 				if(var2 == 0) {
+ 					return false;
+@@ -963,6 +999,22 @@
+ 
+ 	public boolean isPlayerSleeping() {
+ 		return this.sleeping;
++	}
++
++	public boolean isZeroPlusEvent() {
++		return this.ZeroPlusEvent;
++	}
++
++	public void setZeroPlusEvent(boolean ZeroPlus) {
++		this.ZeroPlusEvent = ZeroPlus;
++	}
++
++	public int isZeroPlusN() {
++		return this.ZeroPlusN;
++	}
++
++	public void setZeroPlusN(int ZeroPlus) {
++		this.ZeroPlusN = ZeroPlus;
+ 	}
+ 
+ 	public boolean isPlayerFullyAsleep() {
+--- net/minecraft/src/Packet.java
++++ net/minecraft/src/Packet.java
+@@ -221,6 +221,8 @@
+ 		addIdClassMapping(61, true, false, Packet61DoorChange.class);
+ 		addIdClassMapping(70, true, false, Packet70Bed.class);
+ 		addIdClassMapping(71, true, false, Packet71Weather.class);
++		addIdClassMapping(80, true, true, Packet80Event.class);
++		addIdClassMapping(81, true, true, Packet81Sound.class);
+ 		addIdClassMapping(100, true, false, Packet100OpenWindow.class);
+ 		addIdClassMapping(101, true, true, Packet101CloseWindow.class);
+ 		addIdClassMapping(102, false, true, Packet102WindowClick.class);
+--- /dev/null
++++ net/minecraft/src/EntityMobX.java
+@@ -1,0 +1,98 @@
++package net.minecraft.src;
++
++public abstract class EntityMobX extends EntityCreature implements IMob {
++	protected int attackStrength = 2;
++
++	public EntityMobX(World var1) {
++		super(var1);
++		this.experienceValue = 5;
++	}
++
++	public void onLivingUpdate() {
++		float var1 = this.getEntityBrightness(1.0F);
++		if(var1 > 0.5F) {
++			this.entityAge += 2;
++		}
++
++		super.onLivingUpdate();
++	}
++
++	protected Entity findPlayerToAttack() {
++		EntityPlayer var1 = this.worldObj.getClosestVulnerablePlayerToEntity(this, 16.0D);
++		return var1 != null && this.canEntityBeSeen(var1) ? var1 : null;
++	}
++
++	public boolean attackEntityFrom(DamageSource var1, int var2) {
++		if(super.attackEntityFrom(var1, var2)) {
++			Entity var3 = var1.getEntity();
++			if(this.riddenByEntity != var3 && this.ridingEntity != var3) {
++				if(var3 != this) {
++					this.entityToAttack = var3;
++					this.field_46020_bQ = var3 instanceof EntityLiving ? (EntityLiving)var3 : null;
++				}
++
++				return true;
++			} else {
++				return true;
++			}
++		} else {
++			return false;
++		}
++	}
++
++	public boolean attackEntityAsMob(Entity var1) {
++		int var2 = this.attackStrength;
++		if(this.isPotionActive(Potion.damageBoost)) {
++			var2 += 3 << this.getActivePotionEffect(Potion.damageBoost).getAmplifier();
++		}
++
++		if(this.isPotionActive(Potion.weakness)) {
++			var2 -= 2 << this.getActivePotionEffect(Potion.weakness).getAmplifier();
++		}
++
++		return var1.attackEntityFrom(DamageSource.causeMobDamage(this), var2);
++	}
++
++	protected void attackEntity(Entity var1, float var2) {
++		if(this.attackTime <= 0 && var2 < 2.0F && var1.boundingBox.maxY > this.boundingBox.minY && var1.boundingBox.minY < this.boundingBox.maxY) {
++			this.attackTime = 20;
++			this.attackEntityAsMob(var1);
++		}
++
++	}
++
++	public float getBlockPathWeight(int var1, int var2, int var3) {
++		return 0.5F - this.worldObj.getLightBrightness(var1, var2, var3);
++	}
++
++	public void writeEntityToNBT(NBTTagCompound var1) {
++		super.writeEntityToNBT(var1);
++	}
++
++	public void readEntityFromNBT(NBTTagCompound var1) {
++		super.readEntityFromNBT(var1);
++	}
++
++	protected boolean func_40147_Y() {
++		int var1 = MathHelper.floor_double(this.posX);
++		int var2 = MathHelper.floor_double(this.boundingBox.minY);
++		int var3 = MathHelper.floor_double(this.posZ);
++		if(this.worldObj.getSavedLightValue(EnumSkyBlock.Sky, var1, var2, var3) > this.rand.nextInt(32)) {
++			return false;
++		} else {
++			int var4 = this.worldObj.getBlockLightValue(var1, var2, var3);
++			if(this.worldObj.getIsThundering()) {
++				int var5 = this.worldObj.skylightSubtracted;
++				this.worldObj.skylightSubtracted = 10;
++				var4 = this.worldObj.getBlockLightValue(var1, var2, var3);
++				this.worldObj.skylightSubtracted = var5;
++			}
++
++			return var4 <= this.rand.nextInt(8);
++		}
++	}
++
++	public boolean getCanSpawnHere() {
++		return this.func_40147_Y() && super.getCanSpawnHere();
++	}
++}
+--- /dev/null
++++ net/minecraft/src/EntityHeroBrine.java
+@@ -1,0 +1,92 @@
++package net.minecraft.src;
++
++public class EntityHeroBrine extends EntityAnimal {
++
++	public int timer = 0;
++	public int increase = 0;
++	public boolean flag = false;
++	public boolean flag2 = false;
++
++	public EntityHeroBrine(World var1) {
++		super(var1);
++		this.flag = false;
++		this.flag2 = false;
++		this.texture = "/mob/herobrink.png";
++		this.moveSpeed = 0.0F;
++	}
++
++	public EntityHeroBrine(World var1, boolean flag, boolean flag2) {
++		super(var1);
++		this.flag = flag;
++		this.flag2 = flag2;
++		this.texture = "/mob/herobrink.png";
++		this.moveSpeed = 0.0F;
++	}
++
++	public int getMaxHealth() {
++		return 100;
++	}
++
++	protected boolean canDespawn() {
++		return false;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++		if(!this.worldObj.multiplayerWorld) {
++			if(this.worldObj.getClosestPlayerToEntity(this, 40) != null) {
++				if(this.getDistanceToEntity(this.worldObj.getClosestPlayerToEntity(this, 40)) <= 5) {
++					this.flag = true;
++				}
++				if(this.flag) {
++					this.timer++;
++					if(this.timer % 10 == 0) {
++						for(int i = 0; i < (int)Math.pow(2, this.increase + 1); i++) {
++							EntityHeroBrines heroBrines = new EntityHeroBrines(this.worldObj);
++							heroBrines.setLocationAndAngles2(this.posX, this.posY + 2, this.posZ, 0, 0);
++							this.worldObj.spawnEntityInWorld(heroBrines);
++							new Thread(()->WavPlaySound.playsound("/sounds/herobrine.wav")).start();
++						}
++						this.increase++;
++					}
++				}
++			}
++			if(this.increase >= 8) {
++				throw new Error("Herobrine.");
++			}
++		}
++	}
++
++	public boolean interact(EntityPlayer var1) {
++		return false;
++	}
++
++	@Override
++	protected EntityAnimal spawnBabyAnimal(EntityAnimal var1) {
++		return null;
++	}
++
++	public void writeEntityToNBT(NBTTagCompound var1) {
++		super.writeEntityToNBT(var1);
++		var1.setInteger("increase", this.increase);
++		var1.setBoolean("flag", this.flag);
++	}
++
++	public void readEntityFromNBT(NBTTagCompound var1) {
++		super.readEntityFromNBT(var1);
++		this.increase = var1.getInteger("increase");
++		this.flag = var1.getBoolean("flag");
++	}
++
++	protected String getLivingSound() {
++		return null;
++	}
++
++	protected String getHurtSound() {
++		return null;
++	}
++
++	protected String getDeathSound() {
++		return null;
++	}
++}
+--- net/minecraft/src/WorldGenForest.java
++++ net/minecraft/src/WorldGenForest.java
+@@ -8,6 +8,7 @@
+ 	}
+ 
+ 	public boolean generate(World var1, Random var2, int var3, int var4, int var5) {
++		boolean herobrine = new Random().nextBoolean();
+ 		int var6 = var2.nextInt(3) + 5;
+ 		boolean var7 = true;
+ 		if(var4 >= 1 && var4 + var6 + 1 <= var1.worldHeight) {
+@@ -57,7 +58,9 @@
+ 							for(int var14 = var5 - var11; var14 <= var5 + var11; ++var14) {
+ 								int var15 = var14 - var5;
+ 								if((Math.abs(var13) != var11 || Math.abs(var15) != var11 || var2.nextInt(2) != 0 && var10 != 0) && !Block.opaqueCubeLookup[var1.getBlockId(var12, var16, var14)]) {
+-									this.func_41060_a(var1, var12, var16, var14, Block.leaves.blockID, 2);
++									if(!herobrine) {
++										this.func_41060_a(var1, var12, var16, var14, Block.leaves.blockID, 2);
++									}
+ 								}
+ 							}
+ 						}
+--- /dev/null
++++ net/minecraft/src/EntityVillager66.java
+@@ -1,0 +1,41 @@
++package net.minecraft.src;
++
++public class EntityVillager66 extends EntityCreature {
++	public EntityVillager66(World var1) {
++		super(var1);
++		this.texture = "/mob/villager/villager.png";
++		this.moveSpeed = 0.5F;
++	}
++
++	public int getMaxHealth() {
++		return 20;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++	}
++
++	public void writeEntityToNBT(NBTTagCompound var1) {
++		super.writeEntityToNBT(var1);
++	}
++
++	public void readEntityFromNBT(NBTTagCompound var1) {
++		super.readEntityFromNBT(var1);
++	}
++
++	protected boolean canDespawn() {
++		return false;
++	}
++
++	protected String getLivingSound() {
++		return "mob.villager.default";
++	}
++
++	protected String getHurtSound() {
++		return "mob.villager.defaulthurt";
++	}
++
++	protected String getDeathSound() {
++		return "mob.villager.defaultdeath";
++	}
++}
+--- /dev/null
++++ net/minecraft/src/WorldGenSign.java
+@@ -1,0 +1,15 @@
++package net.minecraft.src;
++
++public class WorldGenSign {
++	public boolean generate(World var1, int var2, int var3, int var4, String[] var5) {
++		var1.setBlock(var2, var3, var4, Block.signPost.blockID);
++		TileEntitySign var9 = new TileEntitySign();
++		var9.xCoord = var2;
++		var9.yCoord = var3;
++		var9.zCoord = var4;
++		var9.worldObj = var1;
++		var9.signText = var5;
++		var1.setBlockTileEntity(var2, var3, var4, var9);
++		return true;
++	}
++}
+--- /dev/null
++++ net/minecraft/src/WorldGenTen.java
+@@ -1,0 +1,41 @@
++package net.minecraft.src;
++
++import java.util.Random;
++
++public class WorldGenTen extends WorldGenerator {
++	public boolean generate(World var1, Random var2, int var3, int var4, int var5) {
++		int var6 = var2.nextInt(2);
++		Block sb;
++		int var7;
++		for(var7 = 0; var7 < 4; ++var7) {
++			if(new Random().nextBoolean()) {
++				sb = Block.ZeroPlus;
++			} else {
++				sb = Block.bedrock;
++			}
++			var1.setBlock(var3, var4 + var7, var5, sb.blockID);
++		}
++
++		for(var7 = 0; var7 < 3; ++var7) {
++			if(var7 != 1) {
++				if(var6 == 0) {
++					if(new Random().nextBoolean()) {
++						sb = Block.ZeroPlus;
++					} else {
++						sb = Block.bedrock;
++					}
++					var1.setBlock(var3 + (var7 - 1), var4 + 2, var5, sb.blockID);
++				} else if(var6 == 1) {
++					if(new Random().nextBoolean()) {
++						sb = Block.ZeroPlus;
++					} else {
++						sb = Block.bedrock;
++					}
++					var1.setBlock(var3, var4 + 2, var5 + (var7 - 1), sb.blockID);
++				}
++			}
++		}
++
++		return true;
++	}
++}
+--- /dev/null
++++ net/minecraft/src/GuiYesNoEvent0.java
+@@ -1,0 +1,43 @@
++package net.minecraft.src;
++
++import java.util.Random;
++
++public class GuiYesNoEvent0 extends GuiScreen {
++	private String message1;
++	private String message2;
++	private String buttonText1;
++	private String buttonText2;
++
++	public GuiYesNoEvent0(String var2, String var3, String var4, String var5) {
++		this.message1 = var2;
++		this.message2 = var3;
++		this.buttonText1 = var4;
++		this.buttonText2 = var5;
++	}
++
++	public void initGui() {
++		this.controlList.add(new GuiSmallButton(0, this.width / 2 - 155 + 0, this.height / 6 + 96, this.buttonText1));
++		this.controlList.add(new GuiSmallButton(1, this.width / 2 - 155 + 160, this.height / 6 + 96, this.buttonText2));
++	}
++
++	protected void actionPerformed(GuiButton var1) {
++		if(new Random().nextInt(4) == 0) {
++			if(!this.mc.isMultiplayerWorld()) {
++				this.mc.theWorld.event1_2(this.mc.thePlayer);
++			} else {
++				((EntityClientPlayerMP)this.mc.thePlayer).sendQueue.addToSendQueue(new Packet80Event(1));
++			}
++			this.mc.displayGuiScreen(null);
++		} else {
++			this.mc.displayGuiScreen(null);
++		}
++
++	}
++
++	public void drawScreen(int var1, int var2, float var3) {
++		this.drawBackground(0);
++		this.drawCenteredString(this.fontRenderer, this.message1, this.width / 2, 70, 16777215);
++		this.drawCenteredString(this.fontRenderer, this.message2, this.width / 2, 90, 16777215);
++		super.drawScreen(var1, var2, var3);
++	}
++}
+--- /dev/null
++++ net/minecraft/src/WorldGen1363968.java
+@@ -1,0 +1,44 @@
++package net.minecraft.src;
++
++public class WorldGen1363968 {
++	public boolean generate(World var1, GuiIngame gui) {
++		int X = 0;
++		int Y = 100;
++		int Z = 0;
++		int length = 16;
++		int width = 16;
++		int height = 16;
++		for(int i = 0; i < length; i++) {
++			for(int j = -width / 2; j < width / 2; j++) {
++				for(int k = 0; k < height; k++) {
++					if(k >= 1 && k < height - 1 && j >= -(width / 2) + 1 && j < (width / 2) - 1 && i != 0 && i != length - 1) {
++						var1.setBlockWithNotify(i + X, k + Y, j + Z, 0);
++					} else {
++						var1.setBlockWithNotify(i + X, k + Y, j + Z, Block.obsidian.blockID);
++					}
++				}
++			}
++		}
++		for(int i = 1; i < length - 1; i++) {
++			var1.setBlockWithNotify(i + X, height - 2 + Y, Z - 1, Block.glowStone.blockID);
++			var1.setBlockWithNotify(i + X, height - 2 + Y, Z, Block.glowStone.blockID);
++		}
++		for(int i = 0; i < length; i++) {
++			for(int j = -width / 2; j < width / 2; j++) {
++				for(int k = 0; k < height; k++) {
++					if(k >= 1 && k < height - 1 && j >= -(width / 2) + 1 && j < (width / 2) - 1 && i != 0 && i != length - 1) {
++						var1.setBlockWithNotify(i + X, k + Y - height + 1, j + Z, 0);
++					} else {
++						var1.setBlockWithNotify(i + X, k + Y - height + 1, j + Z, Block.obsidian.blockID);
++					}
++				}
++			}
++		}
++
++		EntityHeroBrink heroBrink = new EntityHeroBrink(var1, gui);
++		heroBrink.setLocationAndAngles2(X + length - ((int)(14 / 2)), Y + 2 - height, 0, 0, 0);
++		var1.spawnEntityInWorld(heroBrink);
++
++		return true;
++	}
++}
+--- net/minecraft/src/ThreadPollServers.java
++++ net/minecraft/src/ThreadPollServers.java
+@@ -18,11 +18,16 @@
+ 		boolean var27 = false;
+ 
+ 		Object var41;
+-		label183: {
+-			label184: {
+-				label185: {
+-					label186: {
+-						label187: {
++		label183:
++		{
++			label184:
++			{
++				label185:
++				{
++					label186:
++					{
++						label187:
++						{
+ 							try {
+ 								var27 = true;
+ 								this.server.motd = "\u00a78Polling..";
+--- net/minecraft/src/ContainerCreative.java
++++ net/minecraft/src/ContainerCreative.java
+@@ -8,7 +8,9 @@
+ 	public List itemList = new ArrayList();
+ 
+ 	public ContainerCreative(EntityPlayer var1) {
+-		Block[] var2 = new Block[]{Block.cobblestone, Block.stone, Block.oreDiamond, Block.oreGold, Block.oreIron, Block.oreCoal, Block.oreLapis, Block.oreRedstone, Block.stoneBrick, Block.stoneBrick, Block.stoneBrick, Block.blockClay, Block.blockDiamond, Block.blockGold, Block.blockSteel, Block.bedrock, Block.blockLapis, Block.brick, Block.cobblestoneMossy, Block.stairSingle, Block.stairSingle, Block.stairSingle, Block.stairSingle, Block.stairSingle, Block.stairSingle, Block.obsidian, Block.netherrack, Block.slowSand, Block.glowStone, Block.wood, Block.wood, Block.wood, Block.leaves, Block.leaves, Block.leaves, Block.dirt, Block.grass, Block.sand, Block.sandStone, Block.gravel, Block.web, Block.planks, Block.sapling, Block.sapling, Block.sapling, Block.deadBush, Block.sponge, Block.ice, Block.blockSnow, Block.plantYellow, Block.plantRed, Block.mushroomBrown, Block.mushroomRed, Block.cactus, Block.melon, Block.pumpkin, Block.pumpkinLantern, Block.vine, Block.fenceIron, Block.thinGlass, Block.netherBrick, Block.netherFence, Block.stairsNetherBrick, Block.whiteStone, Block.mycelium, Block.waterlily, Block.tallGrass, Block.tallGrass, Block.chest, Block.workbench, Block.glass, Block.tnt, Block.bookShelf, Block.cloth, Block.cloth, Block.cloth, Block.cloth, Block.cloth, Block.cloth, Block.cloth, Block.cloth, Block.cloth, Block.cloth, Block.cloth, Block.cloth, Block.cloth, Block.cloth, Block.cloth, Block.cloth, Block.dispenser, Block.stoneOvenIdle, Block.music, Block.jukebox, Block.pistonStickyBase, Block.pistonBase, Block.fence, Block.fenceGate, Block.ladder, Block.rail, Block.railPowered, Block.railDetector, Block.torchWood, Block.stairCompactPlanks, Block.stairCompactCobblestone, Block.stairsBrick, Block.stairsStoneBrickSmooth, Block.lever, Block.pressurePlateStone, Block.pressurePlatePlanks, Block.torchRedstoneActive, Block.button, Block.trapdoor, Block.enchantmentTable};
++		Block[] var2 = new Block[]{
++				Block.cobblestone, Block.stone, Block.oreDiamond, Block.oreGold, Block.oreIron, Block.oreCoal, Block.oreLapis, Block.oreRedstone, Block.stoneBrick, Block.stoneBrick, Block.stoneBrick, Block.blockClay, Block.blockDiamond, Block.blockGold, Block.blockSteel, Block.bedrock, Block.blockLapis, Block.brick, Block.cobblestoneMossy, Block.stairSingle, Block.stairSingle, Block.stairSingle, Block.stairSingle, Block.stairSingle, Block.stairSingle, Block.obsidian, Block.netherrack, Block.slowSand, Block.glowStone, Block.wood, Block.wood, Block.wood, Block.leaves, Block.leaves, Block.leaves, Block.dirt, Block.grass, Block.sand, Block.sandStone, Block.gravel, Block.web, Block.planks, Block.sapling, Block.sapling, Block.sapling, Block.deadBush, Block.sponge, Block.ice, Block.blockSnow, Block.plantYellow, Block.plantRed, Block.mushroomBrown, Block.mushroomRed, Block.cactus, Block.melon, Block.pumpkin, Block.pumpkinLantern, Block.vine, Block.fenceIron, Block.thinGlass, Block.netherBrick, Block.netherFence, Block.stairsNetherBrick, Block.whiteStone, Block.mycelium, Block.waterlily, Block.tallGrass, Block.tallGrass, Block.chest, Block.workbench, Block.glass, Block.tnt, Block.bookShelf, Block.cloth, Block.cloth, Block.cloth, Block.cloth, Block.cloth, Block.cloth, Block.cloth, Block.cloth, Block.cloth, Block.cloth, Block.cloth, Block.cloth, Block.cloth, Block.cloth, Block.cloth, Block.cloth, Block.dispenser, Block.stoneOvenIdle, Block.music, Block.jukebox, Block.pistonStickyBase, Block.pistonBase, Block.fence, Block.fenceGate, Block.ladder, Block.rail, Block.railPowered, Block.railDetector, Block.torchWood, Block.stairCompactPlanks, Block.stairCompactCobblestone, Block.stairsBrick, Block.stairsStoneBrickSmooth, Block.lever, Block.pressurePlateStone, Block.pressurePlatePlanks, Block.torchRedstoneActive, Block.button, Block.trapdoor, Block.enchantmentTable
++		};
+ 		int var3 = 0;
+ 		int var4 = 0;
+ 		int var5 = 0;
+--- /dev/null
++++ net/minecraft/src/RenderAboutBlank.java
+@@ -1,0 +1,14 @@
++package net.minecraft.src;
++
++public class RenderAboutBlank extends RenderLiving {
++	public RenderAboutBlank(ModelBase model, float shadowSize) {
++		super(model, shadowSize);
++	}
++
++	public void doRender(Entity entity, double x, double y, double z, float yaw, float partialTick) {
++		super.doRender(entity, x, y, z, yaw, partialTick);
++
++		EntityLiving living = (EntityLiving)entity;
++		this.renderLivingLabel(living, ((EntityAboutBlank)living).abname, x, y, z, 64);
++	}
++}
+--- net/minecraft/src/LoadingScreenRenderer.java
++++ net/minecraft/src/LoadingScreenRenderer.java
+@@ -4,12 +4,15 @@
+ import org.lwjgl.opengl.Display;
+ import org.lwjgl.opengl.GL11;
+ 
++import javax.xml.ws.Dispatch;
++
+ public class LoadingScreenRenderer implements IProgressUpdate {
+ 	private String field_1004_a = "";
+ 	private Minecraft mc;
+ 	private String currentlyDisplayedText = "";
+ 	private long field_1006_d = System.currentTimeMillis();
+ 	private boolean field_1005_e = false;
++	public boolean s2664 = false;
+ 
+ 	public LoadingScreenRenderer(Minecraft var1) {
+ 		this.mc = var1;
+@@ -53,6 +56,7 @@
+ 			this.field_1004_a = var1;
+ 			this.setLoadingProgress(-1);
+ 			this.field_1006_d = 0L;
++			GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+ 		}
+ 	}
+ 
+@@ -110,14 +114,36 @@
+ 
+ 				this.mc.fontRenderer.drawStringWithShadow(this.currentlyDisplayedText, (var5 - this.mc.fontRenderer.getStringWidth(this.currentlyDisplayedText)) / 2, var6 / 2 - 4 - 16, 16777215);
+ 				this.mc.fontRenderer.drawStringWithShadow(this.field_1004_a, (var5 - this.mc.fontRenderer.getStringWidth(this.field_1004_a)) / 2, var6 / 2 - 4 + 8, 16777215);
++				if(this.s2664) {
++					this.renderTexture(Display.getWidth(), Display.getHeight(), "/title/h.png");
++				}
+ 				Display.update();
+ 
+ 				try {
+ 					Thread.yield();
+ 				} catch (Exception var14) {
+ 				}
+-
+ 			}
+ 		}
++	}
++
++	public void renderTexture(int var1, int var2, String texture) {
++		GL11.glBindTexture(GL11.GL_TEXTURE_2D, this.mc.renderEngine.getTexture(texture));
++		GL11.glDisable(GL11.GL_DEPTH_TEST);
++		GL11.glEnable(GL11.GL_TEXTURE_2D);
++		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
++		GL11.glMatrixMode(GL11.GL_PROJECTION);
++		GL11.glLoadIdentity();
++		GL11.glOrtho(0.0D, mc.displayWidth, mc.displayHeight, 0.0D, 1000.0D, 3000.0D);
++		GL11.glMatrixMode(GL11.GL_MODELVIEW);
++		GL11.glLoadIdentity();
++		GL11.glTranslatef(0.0F, 0.0F, -2000F);
++		Tessellator var3 = Tessellator.instance;
++		var3.startDrawingQuads();
++		var3.addVertexWithUV(0.0D, (double)var2, -90.0D, 0.0D, 1.0D);
++		var3.addVertexWithUV((double)var1, (double)var2, -90.0D, 1.0D, 1.0D);
++		var3.addVertexWithUV((double)var1, 0.0D, -90.0D, 1.0D, 0.0D);
++		var3.addVertexWithUV(0.0D, 0.0D, -90.0D, 0.0D, 0.0D);
++		var3.draw();
+ 	}
+ }
+--- net/minecraft/src/GameSettings.java
++++ net/minecraft/src/GameSettings.java
+@@ -57,6 +57,7 @@
+ 	public float gammaSetting = 0.0F;
+ 	public int guiScale = 0;
+ 	public int particles = 0;
++	public boolean herobrine = true;
+ 	public String field_44018_Q = "en_US";
+ 
+ 	public GameSettings(Minecraft var1, File var2) {
+@@ -304,6 +305,10 @@
+ 						this.field_44018_Q = var3[1];
+ 					}
+ 
++					if(var3[0].equals("herobrine")) {
++						this.herobrine = var3[1].equals("true");
++					}
++
+ 					for(int var4 = 0; var4 < this.keyBindings.length; ++var4) {
+ 						if(var3[0].equals("key_" + this.keyBindings[var4].keyDescription)) {
+ 							this.keyBindings[var4].keyCode = Integer.parseInt(var3[1]);
+@@ -347,6 +352,7 @@
+ 			var1.println("skin:" + this.skin);
+ 			var1.println("lastServer:" + this.lastServer);
+ 			var1.println("lang:" + this.field_44018_Q);
++			var1.println("herobrine:" + this.herobrine);
+ 
+ 			for(int var2 = 0; var2 < this.keyBindings.length; ++var2) {
+ 				var1.println("key_" + this.keyBindings[var2].keyDescription + ":" + this.keyBindings[var2].keyCode);
+--- /dev/null
++++ net/minecraft/src/GuiScreenZeroPlus.java
+@@ -1,0 +1,98 @@
++package net.minecraft.src;
++
++import org.lwjgl.input.Keyboard;
++
++import java.util.Random;
++
++public class GuiScreenZeroPlus extends GuiScreen {
++	private GuiTextField textField;
++	private boolean timerS = false;
++	private int timer = 0;
++	private String TextBox0 = "";
++
++	public GuiScreenZeroPlus() {
++	}
++
++	public void updateScreen() {
++		this.textField.updateCursorCounter();
++		if(this.timerS) {
++			this.timer++;
++			if(this.timer % 5 == 0) {
++				new Thread(()->WavPlaySound.playsound("/sounds/666.wav")).start();
++				new Thread(()->WavPlaySound.playsound("/sounds/HelloBrine.wav")).start();
++			}
++			this.textField.setText("\u00A7kZeroPlusHello666");
++			if(this.timer == 20 * 6) {
++				if(!this.mc.isMultiplayerWorld()) {
++					this.mc.theWorld.event4_2(this.mc.thePlayer);
++				} else {
++					((EntityClientPlayerMP)this.mc.thePlayer).sendQueue.addToSendQueue(new Packet80Event(0));
++				}
++			}
++			if(this.timer == 20 * 10) {
++				this.mc.displayGuiScreen(null);
++			}
++		}
++	}
++
++	public void initGui() {
++		Keyboard.enableRepeatEvents(true);
++		this.controlList.clear();
++		this.controlList.add(new GuiButton(0, this.width / 2 - 100, this.height / 4 + 96 + 12, "OK"));
++		this.textField = new GuiTextField(this, this.fontRenderer, this.width / 2 - 100, 116, 200, 20, this.TextBox0);
++		this.textField.setMaxStringLength(128);
++		((GuiButton)this.controlList.get(0)).enabled = this.textField.getText().length() > 0;
++	}
++
++	protected void actionPerformed(GuiButton var1) {
++		if(var1.enabled) {
++			if(!this.timerS) {
++				if(new Random().nextInt(6) == 0) {
++					this.timerS = true;
++				} else {
++					this.mc.displayGuiScreen(null);
++				}
++			}
++			if(this.textField.getText().equals("97485.75") && !this.mc.isMultiplayerWorld()) {
++				EntityHeroBrineX heroBrineX = new EntityHeroBrineX(this.mc.theWorld);
++				heroBrineX.setLocationAndAngles2(this.mc.thePlayer.posX, this.mc.thePlayer.posY, this.mc.thePlayer.posZ, 0, 0);
++				this.mc.theWorld.spawnEntityInWorld(heroBrineX);
++				this.mc.displayGuiScreen(null);
++			}
++		}
++	}
++
++	protected void keyTyped(char var1, int var2) {
++		this.textField.textboxKeyTyped(var1, var2);
++		if(var1 == 13) {
++			this.actionPerformed((GuiButton)this.controlList.get(0));
++		}
++
++		((GuiButton)this.controlList.get(0)).enabled = this.textField.getText().length() > 0;
++	}
++
++	protected void mouseClicked(int var1, int var2, int var3) {
++		super.mouseClicked(var1, var2, var3);
++		this.textField.mouseClicked(var1, var2, var3);
++	}
++
++	public void drawScreen(int var1, int var2, float var3) {
++		StringTranslate var4 = StringTranslate.getInstance();
++		if(this.timerS) {
++			this.drawBackground2(0);
++		} else {
++			this.drawBackground(0);
++		}
++		if(this.timerS) {
++			this.drawCenteredString(this.fontRenderer, var4.translateKey("Z\u0e4f\u0e23\u0e53 P\u0142\u03c5\u0e23 \u021a\u0433\u03c5\u0e23\u0282 \u0104\u03c5\u0167\u0452\u0454\u0e20\u03c4\u0131\u010b\u0105\u0167\u0131\u0e53"), this.width / 2, this.height / 4 - 60 + 20, 16777215);
++		} else {
++			this.drawCenteredString(this.fontRenderer, var4.translateKey("Zero Plus Trust Authentication"), this.width / 2, this.height / 4 - 60 + 20, 16777215);
++		}
++		if(this.timerS) {
++			this.drawString(this.fontRenderer, "P\u0142\u0119\u0105\u0e23\u0454 \u0119\u03b7\u03c4\u0119\u0433 \u00a5\u0e4f\u0e22\u044f \u01bf\u0105\u0e23\u0e23\u03c9\u0e4f\u0433\u0111.", this.width / 2 - 100, 100, 10526880);
++		} else {
++			this.drawString(this.fontRenderer, "Please enter your password.", this.width / 2 - 100, 100, 10526880);
++		}
++		this.textField.drawTextBox();
++	}
++}
