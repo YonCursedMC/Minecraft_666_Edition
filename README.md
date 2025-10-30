@@ -127,8 +127,6 @@ You'll have to wait to try it out to see what the elements are.<br>
 - You may be kicked, but this is by design.
 - Certain seeds may cause crashes when playing multiplayer.<br>
 
-Thanks to Zero Plus.
-
 seed: 666×X
 
 
