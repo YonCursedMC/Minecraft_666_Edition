@@ -2,7 +2,7 @@
 
 # Minecraft_666_Edition
 
-レナイジヨさんとのコラボ作品(YonCursedMC 11作目)
+YonCursedMC 11作目
 
 ## 注意
 - このバージョンはMojang公式から実際に出されたものではなく、また公式に認定されたものでもありません。
