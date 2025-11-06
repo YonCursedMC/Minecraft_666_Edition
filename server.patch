@@ -417,7 +417,7 @@
 +}
 --- /dev/null
 +++ net/minecraft/src/EntityAboutBlank.java
-@@ -1,0 +1,125 @@
+@@ -1,0 +1,128 @@
 +package net.minecraft.src;
 +
 +import java.util.Random;
@@ -453,37 +453,40 @@
 +		this.setAbskin(this.skinUrl);
 +		this.setAbname(this.abname);
 +		if(new Random().nextInt(20 * 90) == 0) {
-+			switch(new Random().nextInt(10)) {
-+			case 0:
-+				this.worldObj.SPlayerMP.addChatMessage("<" + this.abname + "> \u4f55\u304b\u8cea\u554f\u306f\u3042\u308a\u307e\u3059\u304b\uff1f");
-+				break;
-+			case 1:
-+				this.worldObj.SPlayerMP.addChatMessage("<" + this.abname + "> \u4eca\u65e5\u306f\u3044\u3044\u5929\u6c17\u3067\u3059\u306d\uff01");
-+				break;
-+			case 2:
-+				this.worldObj.SPlayerMP.addChatMessage("<" + this.abname + "> \u3053\u3053\u306f\u3069\u3053\u3067\u3059\u304b\uff1f");
-+				break;
-+			case 3:
-+				this.worldObj.SPlayerMP.addChatMessage("<" + this.abname + "> \u3042\u306a\u305f\u306f\u8ab0\uff1f");
-+				break;
-+			case 4:
-+				this.worldObj.SPlayerMP.addChatMessage("<" + this.abname + "> \u7686\u3055\u3093\u3053\u3093\u306b\u3061\u306f\u3001" + this.abname + "\u3067\u3059\uff01");
-+				break;
-+			case 5:
-+				this.worldObj.SPlayerMP.addChatMessage("<" + this.abname + "> Do you have any questions?");
-+				break;
-+			case 6:
-+				this.worldObj.SPlayerMP.addChatMessage("<" + this.abname + "> The weather is nice today!");
-+				break;
-+			case 7:
-+				this.worldObj.SPlayerMP.addChatMessage("<" + this.abname + "> Where is this?");
-+				break;
-+			case 8:
-+				this.worldObj.SPlayerMP.addChatMessage("<" + this.abname + "> who are you?");
-+				break;
-+			case 9:
-+				this.worldObj.SPlayerMP.addChatMessage("<" + this.worldObj.SPlayerMP.username + "> Hello everyone, I'm " + this.worldObj.SPlayerMP.username + "!");
-+				break;
++			if(this.worldObj.getPlayerEntityByName(this.abname) != null) {
++				EntityPlayerMP playerMP = (EntityPlayerMP)this.worldObj.getPlayerEntityByName(this.abname);
++				switch(new Random().nextInt(10)) {
++				case 0:
++					playerMP.addChatMessage("<" + this.abname + "> \u4f55\u304b\u8cea\u554f\u306f\u3042\u308a\u307e\u3059\u304b\uff1f");
++					break;
++				case 1:
++					playerMP.addChatMessage("<" + this.abname + "> \u4eca\u65e5\u306f\u3044\u3044\u5929\u6c17\u3067\u3059\u306d\uff01");
++					break;
++				case 2:
++					playerMP.addChatMessage("<" + this.abname + "> \u3053\u3053\u306f\u3069\u3053\u3067\u3059\u304b\uff1f");
++					break;
++				case 3:
++					playerMP.addChatMessage("<" + this.abname + "> \u3042\u306a\u305f\u306f\u8ab0\uff1f");
++					break;
++				case 4:
++					playerMP.addChatMessage("<" + this.abname + "> \u7686\u3055\u3093\u3053\u3093\u306b\u3061\u306f\u3001" + this.abname + "\u3067\u3059\uff01");
++					break;
++				case 5:
++					playerMP.addChatMessage("<" + this.abname + "> Do you have any questions?");
++					break;
++				case 6:
++					playerMP.addChatMessage("<" + this.abname + "> The weather is nice today!");
++					break;
++				case 7:
++					playerMP.addChatMessage("<" + this.abname + "> Where is this?");
++					break;
++				case 8:
++					playerMP.addChatMessage("<" + this.abname + "> who are you?");
++					break;
++				case 9:
++					playerMP.addChatMessage("<" + playerMP.username + "> Hello everyone, I'm " + playerMP.username + "!");
++					break;
++				}
 +			}
 +		}
 +	}
